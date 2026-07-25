@@ -31,5 +31,62 @@ const upload= multer({storage: diskStorage, fileFilter: fileFilter,
         fileSize: 5 * 1024 * 1024 // 5MB
     }
 });
+const uploadFile= (req, res) => {
+    try{
+        upload.single('file')(req, res, (err) => {
+            if (err) {
+                return res.status(400).json({
+                    success: false,
+                    message: err.message,
+                });
+            }
+            res.status(200).json({
+                success: true,
+                message: 'File uploaded successfully',
+                filePath: req.file.path,
+            });
+        });
+    }catch(error){
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+}
+const removeFile = (req,res)=>{
+    try{
+        const { filePath } = req.body;
+        if(!filePath){
+            return res.status(400).json({
+                success:false,
+                message: 'File path is required',
+            })
+        }
 
-module.exports= upload;
+            const imagePath= path.join(__dirname, '../upload', filePath);
+            if(fs.existsSync(imagePath)){
+                fs.unlinkSync(imagePath);
+                res.status(200).json({
+                    success: true,
+                    message: 'File removes successfully',
+                })
+            }else{
+                res.status(404).json({
+                    success: false,
+                    message: 'File not found',
+                })
+            }
+                
+
+    }catch(error){
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+}
+
+module.exports= {
+    uploadFile,
+    removeFile
+};
