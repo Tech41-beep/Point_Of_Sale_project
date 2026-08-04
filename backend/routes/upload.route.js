@@ -1,5 +1,5 @@
-const exxpress = require('express');
-const router = exxpress.Router();
+const express = require('express');
+const router = express.Router();
 const uploadController = require('../controller/upload.controller');
 
 router.post('/upload', uploadController.uploadFile);

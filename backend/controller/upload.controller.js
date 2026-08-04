@@ -8,8 +8,8 @@ const diskStorage= multer.diskStorage({
     
         if (!fs.existsSync(folderPath)) {
             fs.mkdirSync(folderPath, {recursive: true});
-            cb(null, folderPath);
         }
+        cb(null, folderPath);
     },
     filename: (req, file, cb) => {
        const extName= path.extname(file.originalname);
@@ -33,17 +33,24 @@ const upload= multer({storage: diskStorage, fileFilter: fileFilter,
 });
 const uploadFile= (req, res) => {
     try{
-        upload.single('file')(req, res, (err) => {
+        upload.fields([{ name: 'file', maxCount: 1 }, { name: 'image', maxCount: 1 }])(req, res, (err) => {
             if (err) {
                 return res.status(400).json({
                     success: false,
                     message: err.message,
                 });
             }
+            const file = req.files?.file?.[0] || req.files?.image?.[0];
+            if (!file) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No file provided. Use a multipart field named "file".',
+                });
+            }
             res.status(200).json({
                 success: true,
                 message: 'File uploaded successfully',
-                filePath: req.file.path,
+                filePath: file.path,
             });
         });
     }catch(error){

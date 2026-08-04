@@ -1,4 +1,5 @@
 const User = require("../model/user.model");
+const bcrypt = require("bcrypt");
 
 //create the customer using POST method
 const create = async (req, res) => {
@@ -31,7 +32,12 @@ const findAll = async (req, res) => {
     const page= req.query.page || 1 ;
     const limit= req.query.limit || 10 ;
     const skip= (page-1)*limit; 
-    const doc= await User.find().skip(skip).limit(limit).sort({_id: -1}).exec(); // limit for pagination
+    const doc= await User.find({
+      ...req.query.search,
+      email: { $ne: req.user.email }, // Exclude the current user's email from the search results
+      role: { $ne: "super_admin" } // Exclude users with the role of "super_admin"
+        
+    }).skip(skip).limit(limit).sort({_id: -1}).exec(); // limit for pagination
     const querySearch= {}; // search query object
     const sort= req.query.sort || "createdAt"; // sort by createdAt by default
     const totalItems = await User.find (querySearch).countDocuments(); // total items for pagination
@@ -78,24 +84,65 @@ const findOne = async (req, res) => {
   }
 };
 
-const update = async (req, res) => {
+const update = async (req, res, next) => {
   try {
-    const id = req.params.id;
-    const updatedUser= User.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
-    if (!updatedUser    ) {
-      res.status(404).json({
+    const { id } = req.params;
+    const { name, email, password, role } = req.body;
+
+    const isSuperAdmin = req.user.role === "super_admin";
+    const isOwnProfile = req.user._id.toString() === id;
+
+    if (!isSuperAdmin && !isOwnProfile) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You can only update your own profile.",
+      });
+    }
+
+    if (role !== undefined && !isSuperAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Only super_admin can update the role.",
+      });
+    }
+
+    if (password !== undefined && password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters long.",
+      });
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
         success: false,
         message: "User not found",
       });
-    } else {
-      res.status(200).json({
-        success: true,
-        result: updatedUser,
+    }
+
+    if (name !== undefined) user.name = name;
+    if (email !== undefined) user.email = email.toLowerCase();
+    if (role !== undefined) user.role = role.toLowerCase();
+    if (password !== undefined) {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    const updatedUser = await user.save();
+    const result = updatedUser.toObject();
+    delete result.password;
+
+    return res.status(200).json({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Email already exists",
       });
     }
-  } catch (error) {
     next(error);
   }
 };
@@ -104,6 +151,26 @@ const Remove = async (req, res) => {
   try {
     const id = req.params.id;
     const user = await User.findByIdAndDelete(id);
+    const doc = await User.findById(id);
+    if(doc.role=="super_admin"){
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You cannot delete a super_admin.",
+      });
+    }
+    if(doc.role=="admin" && req.user.role !== "super_admin"){
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Only super_admin can delete an admin.",
+      });
+    }
+    if(req.user.role !== "super_admin" && req.user._id.toString() !== id){
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You can only delete your own profile.",
+      });
+    }
+    
     if (!user) {
       return res.status(404).json({
         success: false,
