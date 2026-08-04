@@ -19,10 +19,24 @@ const signup = async (req, res) => {
             })
         }
         const normalizedRole = role.toLowerCase();
-        if(req.user.role === 'admin' && normalizedRole === 'super_admin'){
+        if (req.user?.role === 'admin' && normalizedRole === 'super_admin') {
             return res.status(403).json({
                 success: false,
-                error: 'Forbidden. Admins cannot create super_admin users.',
+                message: 'Forbidden. Admins cannot create super_admin users.',
+            })
+        }
+
+        if (req.user && !['super_admin','admin', 'user', 'cashier'].includes(normalizedRole)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid role. Role must be one of the following: super_admin, admin, user, cashier',
+            })
+        }
+
+        if (!req.user && ['super_admin','admin'].includes(normalizedRole)) {
+            return res.status(403).json({
+                success: false,
+                message: 'Only authenticated admins can create admin or super_admin accounts.',
             })
         }
 
