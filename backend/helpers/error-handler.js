@@ -1,6 +1,6 @@
 
 const errorHandler = (err, req, res, next) => {
-    const statusCode  = 500;
+    let statusCode  = 500;
     let error = new Error("Server Error");
     if(err.name==="ValidationError"){
       const errors = Object.values(err.errors).map((el) => el.message);
@@ -9,7 +9,7 @@ const errorHandler = (err, req, res, next) => {
       
     }
     //duplicate key error
-    if(err.code == 1100){
+    if(err.code === 11000){
         const field = Object.keys(err.keyValue);
         error = new Error(`Duplicate value entered for ${field} field, please choose another value`);
         statusCode = 409;

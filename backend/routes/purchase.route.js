@@ -6,7 +6,8 @@ const {
     findOne,
     findOneByCode,
     updatePurchase,
-    deletePurchase
+    deletePurchase,
+    addPayment
 } = require("../controller/purchase.controller");
 const restrict = require("../guards/restrict.guard");
 const purchaseRouter = express.Router();
@@ -26,4 +27,7 @@ purchaseRouter
     .route("/code/:code")
     .get(restrict("super_admin", "admin"), findOneByCode);
 
+purchaseRouter
+    .patch("/:id/payment", restrict("super_admin", "admin"), addPayment);
+    
 module.exports = purchaseRouter;

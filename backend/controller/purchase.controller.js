@@ -244,8 +244,47 @@ const deletePurchase = async (req, res) => {
         })
     }
 }
+const addPayment = async (req,res)=>{
+    try{
+        const {id}= req.params;
+        const {paidAmount} = req.body;
+        // 1. find sale using id
+        const purchase = await Purchase.findById(id);
+        if(!purchase){
+           return res.status(404).json({
+                success: false,
+                message: "Purchase not found",
+            })
+        }
+        // 2. calculte new paidAmount and dueAmount
+        const totalCost = purchase.totalCost;
+        const newPaidAmound = purchase.paidAmount + paidAmount;
+        // const newDueAmount = totalCost - newPaidAmound;
+
+        // 3.calculate new due Amount
+        const newPaidAmount= Math.max(0, totalCost - newPaidAmound);
+
+        // 4.determine new payment status
+        const paymentStatus = calculatePaymentStatus(totalCost, newPaidAmound);
+
+        // 5. update the sale with new payment
+        const updatePurchase = await Purchase.findByIdAndUpdate(id, {
+            paidAmount: newPaidAmound,
+            dueAmount: newPaidAmount,
+            paymentStatus: paymentStatus,
+        }, {new: true});
+
+        res.status(200).json({
+            success: true,
+            result: updatePurchase,
+        })
+    }catch(error){ 
+      next(error)
+    }
+}
 module.exports = {
     createPurchase,
+    addPayment,
     getAllPurchases,
     findOne,
     findOneByCode,

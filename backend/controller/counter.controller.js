@@ -1,4 +1,4 @@
-const Counter = require('../models/counter.model');
+const Counter = require('../model/counter.model');
 
 const generateCodeProduct = async (req, res) => {
 try{
@@ -21,6 +21,16 @@ res.status(200).json({
 }
 }
 
+const generateInvoiceNumber = async () => {
+const result = await Counter.findOneAndUpdate(
+    {id: "invoiceNumber"},
+    {$inc:{sequenceValue:1}},
+    {new: true, upsert: true}
+)
+return String(result.sequenceValue).padStart(6, '0');
+}
+
 module.exports= {
-    generateCodeProduct
+    generateCodeProduct,
+    generateInvoiceNumber
 }

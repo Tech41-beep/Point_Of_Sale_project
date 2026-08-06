@@ -6,6 +6,8 @@ const {
   findOneByCode,
   updateSale,
   deleteSale,
+  checkStock,
+  addPayment
 } = require("../controller/sale.controller");
 const restrict = require("../guards/restrict.guard");
 
@@ -23,5 +25,11 @@ saleRouter
   .get(restrict("super_admin", "admin"), findOne)
   .put(restrict("super_admin", "admin"), updateSale)
   .delete(restrict("super_admin", "admin"), deleteSale);
+
+saleRouter
+ .get("/stock", restrict("super_admin", "admin"), checkStock);
+
+saleRouter
+ .post("/payment/:id", restrict("super_admin", "admin"), addPayment);
 
 module.exports = saleRouter;

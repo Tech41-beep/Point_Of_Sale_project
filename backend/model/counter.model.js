@@ -20,6 +20,6 @@ const schema = new mongoose.Schema(
   },
 );
 
-const User= mongoose.model("User", schema);
+const Counter = mongoose.model("Counter", schema);
 
-module.exports = User;
+module.exports = Counter;

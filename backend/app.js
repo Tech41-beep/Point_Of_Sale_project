@@ -14,6 +14,7 @@ const cookieParser = require('cookie-parser');
 const errorHandler = require('./helpers/error-handler');
 const purchaseRouter = require('./routes/purchase.route');
 const saleRouter = require('./routes/sale.route');
+const reportRouter = require('./routes/report.route');
 connectDb();
 
 app.set('query parser', (queryString) => {
@@ -40,6 +41,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/purchases', authguard, purchaseRouter);
 app.use('/api/sales', authguard, saleRouter);
 app.use(errorHandler);
+app.use('/api/report', authguard, reportRouter);
 
 
 module.exports = app ;
