@@ -15,6 +15,8 @@ const errorHandler = require('./helpers/error-handler');
 const purchaseRouter = require('./routes/purchase.route');
 const saleRouter = require('./routes/sale.route');
 const reportRouter = require('./routes/report.route');
+const path = require('path');
+const morgan = require('morgan');
 connectDb();
 
 app.set('query parser', (queryString) => {
@@ -29,6 +31,7 @@ app.set('query parser', (queryString) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(morgan('dev'));
 
 app.use('/api/users', authguard, userRouter);
 app.use('/api/customers', authguard, customerRouter);
@@ -42,6 +45,7 @@ app.use('/api/purchases', authguard, purchaseRouter);
 app.use('/api/sales', authguard, saleRouter);
 app.use(errorHandler);
 app.use('/api/report', authguard, reportRouter);
+app.use("/uploads", express.static(path.join(__dirname, "upload")));
 
 
 module.exports = app ;
