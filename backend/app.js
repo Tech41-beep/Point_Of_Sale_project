@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const dotenv = require('dotenv');
 const qs=require('qs');
 const connectDb = require('./config/db');
 const userRouter = require('./routes/user.route');
@@ -16,6 +17,11 @@ const purchaseRouter = require('./routes/purchase.route');
 const saleRouter = require('./routes/sale.route');
 const reportRouter = require('./routes/report.route');
 connectDb();
+
+const allowOrigins = [
+    process.env.CLIENT_DOMAIN,
+    process.env.LOCAL_DOMAIN
+]
 
 app.set('query parser', (queryString) => {
   return qs.parse(queryString, { 
