@@ -11,7 +11,7 @@ const {
 const authRouter = express.Router();
 authRouter
 .route("/signup")
-.post(authGuard, restrict("super_admin", "admin"), signup);
+.post(signup);
 
 authRouter
 .route("/login")
