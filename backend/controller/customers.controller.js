@@ -3,15 +3,16 @@ const Customers = require("../model/customers.model");
 //create the customer using POST method
 const create = async (req, res) => {
   try {
-    const customer = new Customers(req.body);
-    const result = await customer.save();
-    const exist= await Customers.findOne({ id: req.body.id });
-    if(exist){
-      res.status(400).json({
+    const exist = await Customers.findOne({ id: req.body.id });
+    if (exist) {
+      return res.status(400).json({
         success: false,
         message: "Customer with this id already exists"
-      })
+      });
     }
+
+    const customer = new Customers(req.body);
+    const result = await customer.save();
     res.status(201).json({
       success: true,
       result: result,

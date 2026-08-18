@@ -19,6 +19,7 @@ const reportRouter = require('./routes/report.route');
 const path = require('path');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 connectDb();
 
@@ -26,6 +27,20 @@ const allowOrigins = [
     process.env.CLIENT_DOMAIN,
     process.env.LOCAL_DOMAIN
 ]
+app.use(cors({
+  origin: (origin, callback) => {
+    console.log('Request origin:', origin);
+    if (!origin || allowOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+  }
+},
+credentials: true,
+allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Allow-Origin'],
+exposedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Allow-Origin'],
+
+}))
 
 app.set('query parser', (queryString) => {
   return qs.parse(queryString, { 
@@ -59,7 +74,7 @@ app.use(helmet({
 }));
 
 app.use('/api/users', authguard, userRouter);
-app.use('/api/customers', authguard, customerRouter);
+app.use('/api/customers', customerRouter);
 app.use('/api/categories', categoryRouter);
 app.use('/api/suppliers', supplierRouter);
 app.use('/api/products', productRouter);
