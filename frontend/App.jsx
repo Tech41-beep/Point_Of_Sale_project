@@ -3,6 +3,7 @@ import AdminLayout from "./src/layouts/AdminLayout";
 import Dashboard from "./src/pages/dashboard";
 import Customers from "./src/pages/customers/customer";
 import CreateCustomer from "./src/pages/customers/CreateCustomer";
+import SignIn from "./src/pages/Auth/SignIn";
 
 const Placeholder = () => (
   <div className="panel placeholder">
@@ -15,6 +16,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="signin" element={<SignIn />} />
         <Route element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="customers" element={<Customers />} />
