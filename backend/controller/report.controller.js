@@ -184,8 +184,34 @@ try{
 }
 
 }
+const report30days = async (req,res) =>{
+    try{
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+        const report = await Sale.find({
+            createdAt:{ 
+                $gte: thirtyDaysAgo,
+                $lte: today,
+            }
+        })
+        res.status(200).json(
+            {
+                success : true,
+                message: "Report generated successfully",
+                result: report,
+            }
+        )
+    }catch(error){
+        res.status(500).json({
+            success: false,
+            error: error.message,
+        })
+    }
+}
 module.exports = {
   generateReport,
     saleReport,
-    stockReport
+    stockReport,
+    report30days
 };
