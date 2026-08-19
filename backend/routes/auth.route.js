@@ -1,6 +1,5 @@
 const express = require("express");
 const authGuard = require("../guards/auth.guard");
-const restrict = require("../guards/restrict.guard");
 const { 
    signup,
     login,
@@ -19,7 +18,7 @@ authRouter
 
 authRouter
 .route("/logout")
-.post(authGuard, logout);
+.post(logout);
 
 authRouter
 .route("/me")

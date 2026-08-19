@@ -1,17 +1,18 @@
 
 const errorHandler = (err, req, res, next) => {
-    let statusCode  = 500;
-    let error = new Error("Server Error");
+    let statusCode = err.statusCode || err.status || 500;
+    let message = err.message || "Server Error";
+
     if(err.name==="ValidationError"){
       const errors = Object.values(err.errors).map((el) => el.message);
-      error = new Error(errors.join(","));
+      message = errors.join(",");
       statusCode = 400;
-      
     }
+
     //duplicate key error
     if(err.code === 11000){
         const field = Object.keys(err.keyValue);
-        error = new Error(`Duplicate value entered for ${field} field, please choose another value`);
+        message = `Duplicate value entered for ${field} field, please choose another value`;
         statusCode = 409;
     }
     
@@ -19,17 +20,17 @@ const errorHandler = (err, req, res, next) => {
         res.status(statusCode).json({
             success: false,
             name: err.name,
-            error: error.message,
+            message,
             stack: err.stack
         })
     }else{
         res.status(statusCode).json({
             success: false,
-            error: error.message || "Server Error"
+            message
         })
     }
-    
-    console.log(error);
+
+    console.error(err);
     }
 
     module.exports = errorHandler;

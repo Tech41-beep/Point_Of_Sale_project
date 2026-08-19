@@ -28,21 +28,26 @@ const create = async (req, res) => {
 
 const findAll = async (req, res) => {
   try {
-    // const customers = await Customers.find();
-    const page= req.query.page || 1 ;
-    const limit= req.query.limit || 10 ;
-    const skip= (page-1)*limit; 
-    const doc= await Customers.find().skip(skip).limit(limit).sort({_id: -1}).exec(); // limit for pagination
-    const querySearch= {}; // search query object
-    const sort= req.query.sort || "createdAt"; // sort by createdAt by default
-    const totalItems = await Customers.find (querySearch).countDocuments(); // total items for pagination
-    const totalPages= Math.ceil(totalItems/limit); // total pages for pagination
-    if(req.query.search){
-      querySearch["$or"]=[
-        {name: {$regex: req.query.search, $options: "i"}},
-        {note: {$regex: req.query.search, $options: "i"}}
-      ]
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 100);
+    const skip = (page - 1) * limit;
+    const querySearch = {};
+
+    if (req.query.search) {
+      querySearch.$or = [
+        { id: { $regex: req.query.search, $options: "i" } },
+        { name: { $regex: req.query.search, $options: "i" } },
+        { note: { $regex: req.query.search, $options: "i" } },
+        { phone: { $regex: req.query.search, $options: "i" } },
+        { address: { $regex: req.query.search, $options: "i" } },
+      ];
     }
+
+    const [doc, totalItems] = await Promise.all([
+      Customers.find(querySearch).skip(skip).limit(limit).sort({ createdAt: -1 }).exec(),
+      Customers.countDocuments(querySearch),
+    ]);
+    const totalPages = Math.ceil(totalItems / limit);
     res.status(200).json({
       message: "Successfully get all the customers",
       success: true,
@@ -59,7 +64,7 @@ const findAll = async (req, res) => {
   }
 };
 
-const findOne = async (req, res) => {
+const findOne = async (req, res, next) => {
   try {
     const { id } = req.params;
     const customer = await Customers.findById(id);
@@ -79,7 +84,7 @@ const findOne = async (req, res) => {
   }
 };
 
-const update = async (req, res) => {
+const update = async (req, res, next) => {
   try {
     const id = req.params.id;
     const updatedCustomer = await Customers.findByIdAndUpdate(id, req.body, {
@@ -101,7 +106,7 @@ const update = async (req, res) => {
   }
 };
 
-const Remove = async (req, res) => {
+const Remove = async (req, res, next) => {
   try {
     const id = req.params.id;
     const customer = await Customers.findByIdAndDelete(id);

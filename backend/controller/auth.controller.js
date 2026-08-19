@@ -1,6 +1,12 @@
 const User = require("../model/user.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 24 * 60 * 60 * 1000,
+};
 const signup = async (req, res) => {
     try{
         const { name, email, password, role } = req.body;
@@ -88,14 +94,7 @@ const signup = async (req, res) => {
              process.env.JWT_SECRET, 
              {expiresIn: process.env.JWT_LIFETIME});
 
-              res.cookie('token', token, {
-        httpOnly: true,
-        secure: false, // set to true in production
-        sameSite: 'strict',
-        maxAge:   24 * 60 * 60 * 1000, // convert to milliseconds
-
-
-    })
+              res.cookie('token', token, cookieOptions)
         return res.status(201).json({
             success: true,
             result:{
@@ -166,13 +165,7 @@ const login = async (req, res) => {
              process.env.JWT_SECRET,
               {expiresIn: process.env.JWT_LIFETIME});
               //set cookie 
-              res.cookie('token', token, {
-                httpOnly: true,
-                secure: false, // set to true in production
-                sameSite: 'strict',
-                maxAge:   24 * 60 * 60 * 1000, // convert to milliseconds
-                domain: 'localhost', // set your domain here
-              })
+              res.cookie('token', token, cookieOptions)
         res.status(200).json({
             success: true,
             result: {
@@ -193,25 +186,21 @@ const login = async (req, res) => {
     }
 }
 
-        const logout = async (req, res) => {
-            try{
-                if(!req.user) {
-                    return res.status(401).json({
-                        success: false,
-                        message: 'Unauthorized. No user is logged in.',
-                    });
-                }
-                res.clearCookie('token');
-                res.status(200).json({
-                    success: true,
-                    message: 'Logout successful',
-                });
-            }catch(error){
-                res.status(500).json({
-                    success: false,
-                    message: error.message,
-                })
-            }
+        const logout = (req, res) => {
+            const clearOptions = {
+                httpOnly: cookieOptions.httpOnly,
+                secure: cookieOptions.secure,
+                sameSite: cookieOptions.sameSite,
+            };
+
+            // Clear the current host-only cookie and cookies created by the old
+            // localhost-specific implementation.
+            res.clearCookie('token', clearOptions);
+            res.clearCookie('token', { ...clearOptions, domain: 'localhost' });
+            res.status(200).json({
+                success: true,
+                message: 'Logout successful',
+            });
         }
 
         const getcurrentUser = async (req, res) => {

@@ -1,4 +1,6 @@
-import { NavLink } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import api from "../api";
 
 const navItems = [
   ["/", "grid", "Dashboard"],
@@ -65,8 +67,30 @@ const Icon = ({ name }) => (
 );
 
 export default function Sidebar({ open, onClose }) {
+  const navigate = useNavigate();
+  const [signingOut, setSigningOut] = useState(false);
   const closeOnMobile = () => {
     if (window.matchMedia("(max-width: 760px)").matches) onClose();
+  };
+
+  const handleLogout = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("authToken");
+    sessionStorage.removeItem("currentUser");
+    sessionStorage.removeItem("token");
+
+    try {
+      await api.post("/auth/logout");
+    } catch {
+      // The local session is already removed, even if the API is unavailable.
+    } finally {
+      navigate("/signin", { replace: true });
+    }
   };
 
   return (
@@ -102,8 +126,8 @@ export default function Sidebar({ open, onClose }) {
             <span>Check our documentation</span>
             <button>Go to help center</button>
           </div>
-          <button className="logout">
-            <span>↪</span> Log out
+          <button className="logout" onClick={handleLogout} disabled={signingOut}>
+            <span>↪</span> {signingOut ? "Signing out…" : "Sign out"}
           </button>
         </div>
       </aside>

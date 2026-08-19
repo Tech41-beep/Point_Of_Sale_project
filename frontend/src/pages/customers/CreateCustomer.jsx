@@ -1,28 +1,43 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../api";
 
 function CreateCustomer() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ id: "", name: "", phone: "", address: "", note: "" });
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   function handleChange(event) {
-    setForm({ ...form, [event.target.name]: event.target.value });
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
+    if (isLoading) return;
 
+    const payload = Object.fromEntries(
+      Object.entries(form).map(([key, value]) => [key, value.trim()]),
+    );
+
+    if (!payload.id || !payload.name) {
+      setError("Customer ID and customer name are required.");
+      return;
+    }
+
+    setError("");
+    setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      await axios.post("/api/customers", form, {
-        withCredentials: true,
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      navigate("/customers");
-    } catch (error) {
-      setError(error.response?.data?.message || error.response?.data?.error || "Failed to create customer");
+      await api.post("/customers", payload);
+      navigate("/customers", 
+        { replace: true, state: 
+          { message: "Customer created successfully." } 
+        });
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || requestError.response?.data?.error || "Failed to create customer");
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -58,11 +73,14 @@ function CreateCustomer() {
 
         <div className="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-5">
           <Link to="/customers" className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-600">Cancel</Link>
-          <button type="submit" className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white">Create Customer</button>
+          <button type="submit" disabled={isLoading} className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-60">
+            {isLoading ? "Creating…" : "Create Customer"}
+          </button>
         </div>
       </form>
     </div>
   );
 }
+
 
 export default CreateCustomer;

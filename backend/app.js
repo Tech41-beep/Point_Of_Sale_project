@@ -25,11 +25,12 @@ connectDb();
 
 const allowOrigins = [
     process.env.CLIENT_DOMAIN,
-    process.env.LOCAL_DOMAIN
-]
+    process.env.LOCAL_DOMAIN,
+    'http://localhost:5173',
+    'http://127.0.0.1:5173'
+].filter(Boolean);
 app.use(cors({
   origin: (origin, callback) => {
-    console.log('Request origin:', origin);
     if (!origin || allowOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -68,13 +69,12 @@ app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(morgan('dev'));
 app.use(helmet({
   crossOriginResourcePolicy: false,
 }));
 
 app.use('/api/users', authguard, userRouter);
-app.use('/api/customers', customerRouter);
+app.use('/api/customers', authguard, customerRouter);
 app.use('/api/categories', categoryRouter);
 app.use('/api/suppliers', supplierRouter);
 app.use('/api/products', productRouter);
@@ -83,9 +83,9 @@ app.use('/api', uploadRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/purchases', authguard, purchaseRouter);
 app.use('/api/sales', authguard, saleRouter);
-app.use(errorHandler);
 app.use('/api/report', authguard, reportRouter);
 app.use("/uploads", express.static(path.join(__dirname, "upload")));
+app.use(errorHandler);
 
 
 module.exports = app ;

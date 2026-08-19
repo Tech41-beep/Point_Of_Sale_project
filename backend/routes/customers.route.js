@@ -13,12 +13,12 @@ const customerRouter = express.Router();
 const router = express.Router();
 customerRouter
 .route("/")
-.post(restrict("super_admin", "admin"), create)
-.get(restrict("super_admin", "admin"), findAll);
+.post(create)
+.get(findAll);
 
 customerRouter
 .route("/:id")
-.get(restrict("super_admin", "admin"), findOne)
+.get(findOne)
 .put(restrict("super_admin", "admin"), update)
 .delete(restrict("super_admin", "admin"), Remove);
 

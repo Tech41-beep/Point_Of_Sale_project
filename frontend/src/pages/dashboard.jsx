@@ -1,3 +1,5 @@
+import React, { useEffect } from 'react';
+import { useCurrentUser } from '../auth/hooks/use.current';
 const stats = [
   ['Today Revenue', '$2,580', '+12.5%', '↗'],
   ['Due Invoice', '$1,240', '8 invoices', '▣'],
@@ -6,9 +8,19 @@ const stats = [
 ];
 
 export default function Dashboard() {
+  const { user, getCurrentUser, isLoading } = useCurrentUser();
+
+  useEffect(() => {
+    getCurrentUser().catch(() => {
+      // Keep the dashboard usable if the profile request fails.
+    });
+  }, [getCurrentUser]);
+
+  const currentUserName = user?.name || user?.username || 'there';
+
   return (
     <>
-      <section className="welcome"><div><h1>Welcome back, Alex!</h1><p>Here’s what’s happening with your store today.</p></div><button className="primary-button"><span aria-hidden="true">▤</span> Generate report</button></section>
+      <section className="welcome"><div><h1>Welcome back, {isLoading ? '...' : currentUserName}!</h1><p>Here’s what’s happening with your store today.</p></div><button className="primary-button"><span aria-hidden="true">▤</span> Generate report</button></section>
       <section className="stats-grid">
         {stats.map(([label, value, change, icon], index) => <article className={`stat-card stat-card--${index + 1}`} key={label}><div className="stat-icon">{icon}</div><span>{label}</span><strong>{value}</strong><small><b>{change}</b>{index === 0 || index === 3 ? ' from last month' : ' awaiting payment'}</small></article>)}
       </section>
