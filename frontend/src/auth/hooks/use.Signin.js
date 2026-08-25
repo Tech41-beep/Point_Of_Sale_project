@@ -13,6 +13,13 @@ const useSignin = () => {
         email: email.trim(),
         password,
       });
+      if (!data.result?.token) {
+        throw new Error("The server did not return an authentication token.");
+      }
+
+      localStorage.setItem("authToken", data.result.token);
+      localStorage.setItem("currentUser", JSON.stringify(data.result.user));
+      localStorage.removeItem("token");
       return data.result;
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Unable to sign in.");

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
+import { toast } from "react-toastify";
 function LockIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -41,8 +41,18 @@ export default function SignIn() {
       if (!response.ok || !data.success) {
         throw new Error(data.message || data.error || `Sign in failed (${response.status}).`);
       }
-      if (data.result?.token) localStorage.setItem("token", data.result.token);
-      navigate("/");
+      if (!data.result?.token) {
+        throw new Error("The server did not return an authentication token.");
+      }
+
+      localStorage.setItem("authToken", data.result.token);
+      localStorage.setItem("currentUser", JSON.stringify(data.result.user));
+      localStorage.removeItem("token");
+
+      //toast.success("Login successful!");
+      toast.success("Login successful!");
+      navigate("/", { replace: true });
+      
     } catch (requestError) {
       setError(requestError.message === "Failed to fetch"
         ? "Cannot connect to the backend. Start the server on port 8000."

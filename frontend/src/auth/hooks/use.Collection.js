@@ -1,19 +1,40 @@
+import { useState } from "react";
+import api from "../../api";
 
-export const useCollection = async(collectioname, page, limit, search) => {
-const [isLoading, setIsLoading] = useState(true);
-const create=  (data)=>{
-    try{
-        setIsLoading(true);
-        const res = await api.post(`/${collectioname}`, data);
-          if(res.data?.success){
-            return res.data?.result;
-          }
-     
-    }catch(error){
-        console.log(error);
-    }finally{
-        setIsLoading(false);
+export const useCollection = (collectionName) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const create = async (data) => {
+    try {
+      setIsLoading(true);
+      const res = await api.post(`/${collectionName}`, data);
+      return res.data?.result;
+    } finally {
+      setIsLoading(false);
     }
-}
-return {isLoading,create};
-}
+  };
+
+  const update = async (id, data) => {
+    try {
+      setIsLoading(true);
+      const res = await api.put(`/${collectionName}/${id}`, data);
+      return res.data?.result;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const remove = async (id) => {
+    try {
+      setIsLoading(true);
+      const res = await api.delete(`/${collectionName}/${id}`);
+      return res.data?.result;
+    }catch(error){
+      console.error("Error deleting item:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { isLoading, create, update, remove };
+};

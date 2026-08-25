@@ -3,12 +3,15 @@ import { NavLink, useNavigate } from "react-router-dom";
 import api from "../api";
 
 const navItems = [
-  ["/", "grid", "Dashboard"],
-  ["/sales", "bag", "Sales"],
-  ["/products", "box", "Products"],
-  ["/inventory", "layers", "Inventory"],
-  ["/customers", "users", "Customers"],
+    ["/customers", "users", "Customers"],
   ["/suppliers", "truck", "Suppliers"],
+  ["/categories", "grid", "Categories"],
+
+  ["/", "grid", "Dashboard"],
+  ["/purchases", "bag", "Purchases"],
+  ["/products", "box", "Products"],
+    ["/sales", "bag", "Sales"],
+  ["/inventory", "layers", "Inventory"],
   ["/reports", "chart", "Reports"],
 ];
 

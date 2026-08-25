@@ -20,8 +20,28 @@ const createPurchase = async (req, res) => {
                 message: "Supplier, invoice number and purchase date are required",
             });
         }
-        if(purchaseStatus === "recieved" ){
-            for(const item of items) {
+        if (!Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "At least one purchase item is required",
+            });
+        }
+
+        const normalizedItems = items.map((item) => ({
+            product: item.product,
+            quantity: Number(item.quantity),
+            price: Number(item.price),
+        }));
+
+        if (normalizedItems.some((item) => !item.product || item.quantity < 1 || item.price < 0)) {
+            return res.status(400).json({
+                success: false,
+                message: "Each item requires a product, quantity of at least 1, and a valid price",
+            });
+        }
+
+        if(purchaseStatus === "received" ){
+            for(const item of normalizedItems) {
                 const product= await Product.findById(item.product);
                 if(!product) {
                     return res.status(404).json({
@@ -34,16 +54,11 @@ const createPurchase = async (req, res) => {
             }
         }
        
-        const normalizedItems = items.map((item) => ({
-            product: item.product,
-            quantity: Number(item.quantity),
-            price: Number(item.price),
-        }));
         const totalCost = normalizedItems.reduce(
             (total, item) => total + item.quantity * item.price,
             0,
         );
-        const paid = Number(paidAmount);
+        const paid = Number(paidAmount) || 0;
         const dueAmount = Math.max(totalCost - paid, 0);
         const changeAmount = Math.max(paid - totalCost, 0);
         const paymentStatus = calculatePaymentStatus(totalCost, paid);
@@ -102,18 +117,24 @@ try{
     // sort option 
     const sortOption = req.query.sort ? req.query.sort.split(',').join(' ') : '-createdAt';
 
-    const doc= await Purchase.find(querySearch)
-    .populate('supplier')
-    .populate('items.product')
-    .populate('user')
-    .skip(skip)
-    .limit(limit)
-    .sort(sortOption)
-    .exec();
+    const [doc, totalItems] = await Promise.all([
+        Purchase.find(querySearch)
+            .populate('supplier')
+            .populate('items.product')
+            .populate('user')
+            .skip(skip)
+            .limit(limit)
+            .sort(sortOption)
+            .exec(),
+        Purchase.countDocuments(querySearch),
+    ]);
 
     res.status(200).json({
         success: true,
         result: doc ,
+        currentPage: pagevalue,
+        totalItems,
+        totalPages: Math.max(1, Math.ceil(totalItems / limit)),
     })
 
 
@@ -129,7 +150,10 @@ try{
 const findOne = async (req, res) => {
     try{
         const { id } = req.params;
-        const purchase = await Purchase.findById(id).populate('category');
+        const purchase = await Purchase.findById(id)
+            .populate('supplier')
+            .populate('items.product')
+            .populate('user');
         if(!purchase){
             return res.status(404).json({
                 success: false,
@@ -151,7 +175,10 @@ const findOne = async (req, res) => {
 const findOneByCode = async (req, res) => {
     try{
         const code = req.params.code;
-        const purchase = await Purchase.findOne({ code }).populate('category');
+        const purchase = await Purchase.findOne({ invoiceNumber: code })
+            .populate('supplier')
+            .populate('items.product')
+            .populate('user');
         if(!purchase){
             return res.status(404).json({
                 success: false,
@@ -172,45 +199,50 @@ const findOneByCode = async (req, res) => {
 
 const updatePurchase = async (req, res) => {
     try{
-        // purchaseStatus can only be changed to "recieved" at the time of creation, it cannot be changed after creation
-        // doc.purchaseStatus can only be changed to "recieved" at the time of creation, it cannot be changed after creation
         const { id } = req.params;
-        const purchase = await Purchase.findByIdAndUpdate(id, req.body, {
-            new: true,
-        });
+        const purchase = await Purchase.findById(id);
         if(!purchase){
             return res.status(404).json({
                 success: false,
                 message: 'Purchase not found',
             })
         }
-        //if purchaseStatus is "recieved", update the stock quantity of the products from database
-        const doc = req.body;
-        if(doc.purchaseStatus === "recieved" && purchase.purchaseStatus !== "recieved"){
+
+        const items = Array.isArray(req.body.items)
+            ? req.body.items.map((item) => ({
+                product: item.product?._id || item.product,
+                quantity: Number(item.quantity),
+                price: Number(item.price),
+            }))
+            : purchase.items;
+
+        if (!items.length || items.some((item) => !item.product || item.quantity < 1 || item.price < 0)) {
             return res.status(400).json({
                 success: false,
-                message: "Cannot change purchase status to 'recieved' after creation",
-            })
+                message: "Each item requires a product, quantity of at least 1, and a valid price",
+            });
         }
 
-          //if purchaseStatus is not "recieved", update the stock quantity of the products
-          if(purchase.purchaseStatus === "recieved" && doc.purchaseStatus !== "recieved"){
-            for(const item of doc.items) {
-                // Update stock quantity logic here
-                const product = await Product.findById(item.product);
-                if(!product) {
-                    return res.status(404).json({
-                        success: false,
-                        error: `Product with id ${item.product} not found`,
-                    })
-                }
-                product.currentStockQuantity -= Number(item.quantity);
-                await product.save();
-            }
-            const newDoc = await Purchase.findByIdAndUpdate(id, doc, {
-                new: true,
-            });
-          }
+        const totalCost = items.reduce(
+            (total, item) => total + item.quantity * item.price,
+            0,
+        );
+        const paidAmount = Number(req.body.paidAmount ?? purchase.paidAmount) || 0;
+        const purchaseStatus = req.body.purchaseStatus || purchase.purchaseStatus;
+
+        purchase.supplier = req.body.supplier || purchase.supplier;
+        purchase.invoiceNumber = req.body.invoiceNumber?.trim() || purchase.invoiceNumber;
+        purchase.purchaseDate = req.body.purchaseDate || purchase.purchaseDate;
+        purchase.items = items;
+        purchase.totalCost = totalCost;
+        purchase.paidAmount = paidAmount;
+        purchase.dueAmount = Math.max(totalCost - paidAmount, 0);
+        purchase.changeAmount = Math.max(paidAmount - totalCost, 0);
+        purchase.paymentStatus = calculatePaymentStatus(totalCost, paidAmount);
+        purchase.purchaseStatus = purchaseStatus;
+
+        await purchase.save();
+
         res.status(200).json({
             success: true,
             result: purchase,
@@ -244,7 +276,7 @@ const deletePurchase = async (req, res) => {
         })
     }
 }
-const addPayment = async (req,res)=>{
+const addPayment = async (req,res,next)=>{
     try{
         const {id}= req.params;
         const {paidAmount} = req.body;
@@ -258,7 +290,14 @@ const addPayment = async (req,res)=>{
         }
         // 2. calculte new paidAmount and dueAmount
         const totalCost = purchase.totalCost;
-        const newPaidAmound = purchase.paidAmount + paidAmount;
+        const payment = Number(paidAmount);
+        if (!Number.isFinite(payment) || payment <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Paid amount must be greater than zero",
+            });
+        }
+        const newPaidAmound = purchase.paidAmount + payment;
         // const newDueAmount = totalCost - newPaidAmound;
 
         // 3.calculate new due Amount

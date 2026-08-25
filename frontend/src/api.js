@@ -1,11 +1,8 @@
 import axios from "axios";
-
+import { apiUrl } from "./config/env";
 const api = axios.create({
-  baseURL: "/api",
+  baseURL: `${apiUrl}/api`,
   withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 api.interceptors.request.use((config) => {

@@ -1,51 +1,41 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api";
-function Customers() {
+function Suppliers() {
   // state variables
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const [customers, setCustomers] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState("");
-  const [customerToDelete, setCustomerToDelete] = useState(null);
+  const [supplierToDelete, setSupplierToDelete] = useState(null);
 
 
- // useEffect: use for fetching customers from the API
+ // useEffect: use for fetching suppliers from the API
   useEffect(() => {
-    async function fetchCustomers() {
+    async function fetchSuppliers() {
       setLoading(true);
       setError("");
       try {
-        const response = await api.get("/customers", {
+        const response = await api.get("/suppliers", {
           params: { page, limit: 10, search: search || undefined },
         });
-        setCustomers(Array.isArray(response.data?.result) ? response.data.result : []);
+        setSuppliers(Array.isArray(response.data?.result) ? response.data.result : []);
         setTotalPages(response.data?.totalPages || 1);
         setTotalItems(response.data?.totalItems || 0);
       } catch (error) {
-        setError(error.response?.data?.message || error.response?.data?.error || "Failed to fetch customers");
+        setError(error.response?.data?.message || error.response?.data?.error || "Failed to fetch suppliers");
       } finally {
         setLoading(false);
       }
     }
 
-    fetchCustomers();
+    fetchSuppliers();
   }, [page, search]);
-  
-    function CreateCustomer(){
-      const [id,setId] = useState("");
-      const [name,setName] = useState("");
-      const [phone,setPhone] = useState("");
-      const [address,setAddress] = useState("");
-      const [note,setNote] = useState("");
-
-    }
-  
   // search handler
   function handleSearch(event) {
     event.preventDefault();
@@ -55,20 +45,20 @@ function Customers() {
 
 //delete handler
   async function handleDelete() {
-    if (!customerToDelete) return;
+    if (!supplierToDelete) return;
 
-    const customer = customerToDelete;
+    const supplier = supplierToDelete;
     setError("");
-    setDeletingId(customer._id);
+    setDeletingId(supplier._id);
     try {
-      await api.delete(`/customers/${customer._id}`);
-      setCustomers((current) => current.filter((item) => item._id !== customer._id));
+      await api.delete(`/suppliers/${supplier._id}`);
+      setSuppliers((current) => current.filter((item) => item._id !== supplier._id));
       setTotalItems((current) => Math.max(0, current - 1));
-      setCustomerToDelete(null);
-      if (customers.length === 1 && page > 1) 
+      setSupplierToDelete(null);
+      if (suppliers.length === 1 && page > 1) 
         setPage((current) => current - 1);
     } catch (requestError) {
-      setError(requestError.response?.data?.message || requestError.response?.data?.error || "Failed to delete customer");
+      setError(requestError.response?.data?.message || requestError.response?.data?.error || "Failed to delete supplier");
     } finally {
       setDeletingId("");
     }
@@ -76,10 +66,10 @@ function Customers() {
 
   return (
 
-    <div className="customer-page rounded-xl bg-white p-6 shadow-sm">
+    <div className="supplier-page rounded-xl bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Customers</h1>
-        <Link className="primary-button" to="/customers/add">+ Add Customer</Link>
+        <h1 className="text-2xl font-bold text-gray-800">Suppliers</h1>
+        <Link className="primary-button" to="/suppliers/add">+ Add Supplier</Link>
       </div>
     {/* search */}
       <form className="mt-6 flex flex-col gap-3 sm:flex-row" onSubmit={handleSearch}>
@@ -101,26 +91,26 @@ function Customers() {
         <table className="w-full min-w-[650px] border-collapse text-left">
           <thead className="bg-gray-50 text-sm text-gray-500">
             <tr>
-              {['Customer ID', 'Customer Name', 'Phone', 'Address', 'Note', 'Actions'].map((title) => (
+              {['Supplier ID', 'Supplier Name', 'Phone', 'Address', 'Note', 'Actions'].map((title) => (
                 <th key={title} className="border-b border-gray-300 px-4 py-3">{title}</th>
               ))}
             </tr>
           </thead>
           {/* map */}
           <tbody className="text-sm text-gray-700">
-            {customers.map((customer) => (
-              <tr key={customer._id || customer.id}>
-                <td className="border-b border-gray-300 px-4 py-4 font-semibold">{customer.id}</td>
-                <td className="border-b border-gray-300 px-4 py-4">{customer.name}</td>
-                <td className="border-b border-gray-300 px-4 py-4">{customer.phone}</td>
-                <td className="border-b border-gray-300 px-4 py-4">{customer.address}</td>
-                <td className="border-b border-gray-300 px-4 py-4">{customer.note}</td>
+            {suppliers.map((supplier) => (
+              <tr key={supplier._id || supplier.id}>
+                <td className="border-b border-gray-300 px-4 py-4 font-semibold">{supplier.id}</td>
+                <td className="border-b border-gray-300 px-4 py-4">{supplier.businessName}</td>
+                <td className="border-b border-gray-300 px-4 py-4">{supplier.phone}</td>
+                <td className="border-b border-gray-300 px-4 py-4">{supplier.address}</td>
+                <td className="border-b border-gray-300 px-4 py-4">{supplier.note}</td>
                 <td className="border-b border-gray-300 px-4 py-4">
                   <div className="flex items-center gap-2">
                     <Link
-                      to={`/customers/edit/${customer._id}`}
+                      to={`/suppliers/edit/${supplier._id}`}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 transition-colors hover:border-indigo-300 hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
-                      aria-label={`Edit ${customer.name}`}
+                      aria-label={`Edit ${supplier.name}`}
                     >
                       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 20h9" />
@@ -131,11 +121,11 @@ function Customers() {
                     <button
                       type="button"
                       className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:border-red-300 hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      onClick={() => setCustomerToDelete(customer)}
-                      disabled={deletingId === customer._id}
-                      aria-label={`Delete ${customer.name}`}
+                      onClick={() => setSupplierToDelete(supplier)}
+                      disabled={deletingId === supplier._id}
+                      aria-label={`Delete ${supplier.name}`}
                     >
-                      {deletingId === customer._id ? (
+                      {deletingId === supplier._id ? (
                         <>
                           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 animate-spin fill-none stroke-current" strokeWidth="2" strokeLinecap="round">
                             <path d="M21 12a9 9 0 1 1-6.22-8.56" />
@@ -156,17 +146,17 @@ function Customers() {
                 </td>
               </tr>
             ))}
-            {/* loading and no customers found messages */}
-            {!loading && customers.length === 0 && (
+            {/* loading and no suppliers found messages */}
+            {!loading && suppliers.length === 0 && (
               <tr>
                 <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
-                  No customers found</td>
+                  No suppliers found</td>
               </tr>
             )}
             {loading && (
               <tr>
                 <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
-                  Loading customers...
+                  Loading suppliers...
                 </td>
               </tr>
             )}
@@ -190,11 +180,11 @@ function Customers() {
         </div>}
       </div>
 
-      {customerToDelete && (
+      {supplierToDelete && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-[2px]"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !deletingId) setCustomerToDelete(null);
+            if (event.target === event.currentTarget && !deletingId) setSupplierToDelete(null);
           }}
         >
           <div
@@ -212,9 +202,9 @@ function Customers() {
                 </svg>
               </div>
               <div>
-                <h2 id="delete-customer-title" className="text-lg font-bold text-gray-900">Delete customer?</h2>
+                <h2 id="delete-customer-title" className="text-lg font-bold text-gray-900">Delete supplier?</h2>
                 <p id="delete-customer-description" className="mt-2 text-sm leading-6 text-gray-500">
-                  You are about to permanently delete <span className="font-semibold text-gray-700">{customerToDelete.name}</span>. This action cannot be undone.
+                  You are about to permanently delete <span className="font-semibold text-gray-700">{supplierToDelete.name}</span>. This action cannot be undone.
                 </p>
               </div>
             </div>
@@ -223,7 +213,7 @@ function Customers() {
               <button
                 type="button"
                 className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                onClick={() => setCustomerToDelete(null)}
+                onClick={() => setSupplierToDelete(null)}
                 disabled={Boolean(deletingId)}
               >
                 Cancel
@@ -241,7 +231,7 @@ function Customers() {
                     </svg>
                     Deleting…
                   </>
-                ) : "Delete customer"}
+                ) : "Delete supplier"}
               </button>
             </div>
           </div>
@@ -251,4 +241,4 @@ function Customers() {
   );
 }
 
-export default Customers;
+export default Suppliers;

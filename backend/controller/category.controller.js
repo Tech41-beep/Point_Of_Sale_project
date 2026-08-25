@@ -3,22 +3,23 @@ const Category = require("../model/category.model");
 //create the category using POST method
 const create = async (req, res) => {
   try {
+    const exist = await Category.findOne({ id: req.body.id });
+    if (exist) {
+      return res.status(409).json({
+        success: false,
+        message: "Category with this id already exists",
+      });
+    }
+
     const category = new Category(req.body);
     const result = await category.save();
-    const exist= await Category.findOne({ id: req.body.id });
-    if(exist){
-      res.status(400).json({
-        success: false,
-        message: "Category with this id already exists"
-      })
-    }
-    res.status(201).json({
+
+    return res.status(201).json({
       success: true,
       result: result,
     });
-    console.log(result);
   } catch (error) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       error: error.message,
     });

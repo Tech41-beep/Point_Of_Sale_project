@@ -1,51 +1,41 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api";
-function Customers() {
+function Category() {
   // state variables
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const [customers, setCustomers] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState("");
-  const [customerToDelete, setCustomerToDelete] = useState(null);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
 
 
- // useEffect: use for fetching customers from the API
+ // useEffect: use for fetching categories from the API
   useEffect(() => {
-    async function fetchCustomers() {
+    async function fetchCategories() {
       setLoading(true);
       setError("");
       try {
-        const response = await api.get("/customers", {
+        const response = await api.get("/categories", {
           params: { page, limit: 10, search: search || undefined },
         });
-        setCustomers(Array.isArray(response.data?.result) ? response.data.result : []);
+        setCategories(Array.isArray(response.data?.result) ? response.data.result : []);
         setTotalPages(response.data?.totalPages || 1);
         setTotalItems(response.data?.totalItems || 0);
       } catch (error) {
-        setError(error.response?.data?.message || error.response?.data?.error || "Failed to fetch customers");
+        setError(error.response?.data?.message || error.response?.data?.error || "Failed to fetch categories");
       } finally {
         setLoading(false);
       }
     }
 
-    fetchCustomers();
+    fetchCategories();
   }, [page, search]);
-  
-    function CreateCustomer(){
-      const [id,setId] = useState("");
-      const [name,setName] = useState("");
-      const [phone,setPhone] = useState("");
-      const [address,setAddress] = useState("");
-      const [note,setNote] = useState("");
-
-    }
-  
   // search handler
   function handleSearch(event) {
     event.preventDefault();
@@ -55,20 +45,20 @@ function Customers() {
 
 //delete handler
   async function handleDelete() {
-    if (!customerToDelete) return;
+    if (!categoryToDelete) return;
 
-    const customer = customerToDelete;
+    const category = categoryToDelete;
     setError("");
-    setDeletingId(customer._id);
+    setDeletingId(category._id);
     try {
-      await api.delete(`/customers/${customer._id}`);
-      setCustomers((current) => current.filter((item) => item._id !== customer._id));
+      await api.delete(`/categories/${category._id}`);
+      setCategories((current) => current.filter((item) => item._id !== category._id));
       setTotalItems((current) => Math.max(0, current - 1));
-      setCustomerToDelete(null);
-      if (customers.length === 1 && page > 1) 
+      setCategoryToDelete(null);
+      if (categories.length === 1 && page > 1) 
         setPage((current) => current - 1);
     } catch (requestError) {
-      setError(requestError.response?.data?.message || requestError.response?.data?.error || "Failed to delete customer");
+      setError(requestError.response?.data?.message || requestError.response?.data?.error || "Failed to delete category");
     } finally {
       setDeletingId("");
     }
@@ -76,17 +66,17 @@ function Customers() {
 
   return (
 
-    <div className="customer-page rounded-xl bg-white p-6 shadow-sm">
+    <div className="category-page rounded-xl bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Customers</h1>
-        <Link className="primary-button" to="/customers/add">+ Add Customer</Link>
+        <h1 className="text-2xl font-bold text-gray-800">Categories</h1>
+        <Link className="primary-button" to="/categories/add">+ Add Category</Link>
       </div>
     {/* search */}
       <form className="mt-6 flex flex-col gap-3 sm:flex-row" onSubmit={handleSearch}>
         <input
           className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-indigo-500"
           type="search"
-          placeholder="Search by ID, name, phone, address or note"
+          placeholder="Search by ID, name or note"
           value={searchInput}
           onChange={(event) => setSearchInput(event.target.value)}
         />
@@ -101,26 +91,24 @@ function Customers() {
         <table className="w-full min-w-[650px] border-collapse text-left">
           <thead className="bg-gray-50 text-sm text-gray-500">
             <tr>
-              {['Customer ID', 'Customer Name', 'Phone', 'Address', 'Note', 'Actions'].map((title) => (
+              {['Category ID', 'Category Name', 'Note', 'Actions'].map((title) => (
                 <th key={title} className="border-b border-gray-300 px-4 py-3">{title}</th>
               ))}
             </tr>
           </thead>
           {/* map */}
           <tbody className="text-sm text-gray-700">
-            {customers.map((customer) => (
-              <tr key={customer._id || customer.id}>
-                <td className="border-b border-gray-300 px-4 py-4 font-semibold">{customer.id}</td>
-                <td className="border-b border-gray-300 px-4 py-4">{customer.name}</td>
-                <td className="border-b border-gray-300 px-4 py-4">{customer.phone}</td>
-                <td className="border-b border-gray-300 px-4 py-4">{customer.address}</td>
-                <td className="border-b border-gray-300 px-4 py-4">{customer.note}</td>
+            {categories.map((category) => (
+              <tr key={category._id || category.id}>
+                <td className="border-b border-gray-300 px-4 py-4 font-semibold">{category.id}</td>
+                <td className="border-b border-gray-300 px-4 py-4">{category.name}</td>
+                <td className="border-b border-gray-300 px-4 py-4">{category.note}</td>
                 <td className="border-b border-gray-300 px-4 py-4">
                   <div className="flex items-center gap-2">
                     <Link
-                      to={`/customers/edit/${customer._id}`}
+                      to={`/categories/edit/${category._id}`}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 transition-colors hover:border-indigo-300 hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
-                      aria-label={`Edit ${customer.name}`}
+                      aria-label={`Edit ${category.name}`}
                     >
                       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 20h9" />
@@ -131,11 +119,11 @@ function Customers() {
                     <button
                       type="button"
                       className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:border-red-300 hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      onClick={() => setCustomerToDelete(customer)}
-                      disabled={deletingId === customer._id}
-                      aria-label={`Delete ${customer.name}`}
+                      onClick={() => setCategoryToDelete(category)}
+                      disabled={deletingId === category._id}
+                      aria-label={`Delete ${category.name}`}
                     >
-                      {deletingId === customer._id ? (
+                      {deletingId === category._id ? (
                         <>
                           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 animate-spin fill-none stroke-current" strokeWidth="2" strokeLinecap="round">
                             <path d="M21 12a9 9 0 1 1-6.22-8.56" />
@@ -156,17 +144,17 @@ function Customers() {
                 </td>
               </tr>
             ))}
-            {/* loading and no customers found messages */}
-            {!loading && customers.length === 0 && (
+            {/* loading and no categories found messages */}
+            {!loading && categories.length === 0 && (
               <tr>
                 <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
-                  No customers found</td>
+                  No categories found</td>
               </tr>
             )}
             {loading && (
               <tr>
                 <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
-                  Loading customers...
+                  Loading categories...
                 </td>
               </tr>
             )}
@@ -190,19 +178,19 @@ function Customers() {
         </div>}
       </div>
 
-      {customerToDelete && (
+      {categoryToDelete && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-[2px]"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !deletingId) setCustomerToDelete(null);
+            if (event.target === event.currentTarget && !deletingId) setCategoryToDelete(null);
           }}
         >
           <div
             className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5"
             role="alertdialog"
             aria-modal="true"
-            aria-labelledby="delete-customer-title"
-            aria-describedby="delete-customer-description"
+            aria-labelledby="delete-category-title"
+            aria-describedby="delete-category-description"
           >
             <div className="flex items-start gap-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
@@ -212,9 +200,9 @@ function Customers() {
                 </svg>
               </div>
               <div>
-                <h2 id="delete-customer-title" className="text-lg font-bold text-gray-900">Delete customer?</h2>
-                <p id="delete-customer-description" className="mt-2 text-sm leading-6 text-gray-500">
-                  You are about to permanently delete <span className="font-semibold text-gray-700">{customerToDelete.name}</span>. This action cannot be undone.
+                <h2 id="delete-category-title" className="text-lg font-bold text-gray-900">Delete category?</h2>
+                <p id="delete-category-description" className="mt-2 text-sm leading-6 text-gray-500">
+                  You are about to permanently delete <span className="font-semibold text-gray-700">{categoryToDelete.name}</span>. This action cannot be undone.
                 </p>
               </div>
             </div>
@@ -223,7 +211,7 @@ function Customers() {
               <button
                 type="button"
                 className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                onClick={() => setCustomerToDelete(null)}
+                onClick={() => setCategoryToDelete(null)}
                 disabled={Boolean(deletingId)}
               >
                 Cancel
@@ -241,7 +229,7 @@ function Customers() {
                     </svg>
                     Deleting…
                   </>
-                ) : "Delete customer"}
+                ) : "Delete category"}
               </button>
             </div>
           </div>
@@ -251,4 +239,4 @@ function Customers() {
   );
 }
 
-export default Customers;
+export default Category;

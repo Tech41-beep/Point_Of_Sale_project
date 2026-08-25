@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import api from "../../api";
 
 export const useQuery = async (collectioname, page, limit, search) => {
   const [data, setData] = useState([]);

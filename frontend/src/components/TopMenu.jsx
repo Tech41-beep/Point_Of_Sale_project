@@ -30,7 +30,7 @@ export default function TopMenu({ onMenuClick, sidebarOpen, lightMode, onLightTo
       <div className="top-menu__actions">
         <label className="search-box">
           <Icon size={18}><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></Icon>
-          <input type="search" placeholder="Search anything..." aria-label="Search" />
+          <input id="global-search" name="globalSearch" type="search" placeholder="Search anything..." aria-label="Search" />
           <kbd>⌘ K</kbd>
         </label>
         <button

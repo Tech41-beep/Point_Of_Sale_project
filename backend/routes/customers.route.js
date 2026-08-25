@@ -19,7 +19,7 @@ customerRouter
 customerRouter
 .route("/:id")
 .get(findOne)
-.put(restrict("super_admin", "admin"), update)
+.put(update)
 .delete(restrict("super_admin", "admin"), Remove);
 
 router.use("/customers", customerRouter);

@@ -2,7 +2,6 @@ const express = require('express');
 const app = express();
 const dotenv = require('dotenv');
 const qs=require('qs');
-const connectDb = require('./config/db');
 const userRouter = require('./routes/user.route');
 const categoryRouter = require('./routes/category.route');
 const customerRouter = require('./routes/customers.route');
@@ -21,8 +20,6 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
-connectDb();
-
 const allowOrigins = [
     process.env.CLIENT_DOMAIN,
     process.env.LOCAL_DOMAIN,
@@ -58,29 +55,43 @@ if(process.env.NODE_ENV === 'development'){
   app.use(morgan('combined'));
 }
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
-app.use(limiter);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const loginLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many sign-in attempts. Please try again in 5 minutes.",
+  },
+});
+
+app.use(globalLimiter);
+// Product images are currently submitted as Base64 data URLs. Base64 is larger
+// than the original file, so this must exceed the frontend's 2 MB file limit.
+app.use(express.json({ limit: '4mb' }));
+app.use(express.urlencoded({ extended: true, limit: '4mb' }));
 app.use(cookieParser());
 app.use(helmet({
   crossOriginResourcePolicy: false,
 }));
 
+app.use("/api/auth/login", loginLimiter);
+app.use("/api/auth", authRouter);
 app.use('/api/users', authguard, userRouter);
 app.use('/api/customers', authguard, customerRouter);
-app.use('/api/categories', categoryRouter);
+app.use('/api/categories', authguard, categoryRouter);
 app.use('/api/suppliers', supplierRouter);
 app.use('/api/products', productRouter);
 app.use('/api/product', productRouter);
 app.use('/api', uploadRouter);
-app.use('/api/auth', authRouter);
 app.use('/api/purchases', authguard, purchaseRouter);
 app.use('/api/sales', authguard, saleRouter);
 app.use('/api/report', authguard, reportRouter);
