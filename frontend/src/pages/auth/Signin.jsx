@@ -44,14 +44,15 @@ export default function SignIn() {
       if (!data.result?.token) {
         throw new Error("The server did not return an authentication token.");
       }
-
       localStorage.setItem("authToken", data.result.token);
       localStorage.setItem("currentUser", JSON.stringify(data.result.user));
       localStorage.removeItem("token");
 
-      //toast.success("Login successful!");
       toast.success("Login successful!");
-      navigate("/", { replace: true });
+      navigate(
+        data.result.user?.role === "cashier" ? "/sales/pos" : "/",
+        { replace: true },
+      );
       
     } catch (requestError) {
       setError(requestError.message === "Failed to fetch"

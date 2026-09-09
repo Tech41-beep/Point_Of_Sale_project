@@ -122,7 +122,7 @@ function Products() {
                 "Cost Price",
                 "Sale Price",
                 "Current Stock Quantity",
-                "Image URL",
+                "Image",
                 "Note",
            
                
@@ -160,7 +160,21 @@ function Products() {
                   {Number(product.currentStockQuantity).toLocaleString()}
                 </td>
                 <td className="border-b border-gray-300 px-4 py-4">
-                  {product.imageUrl}
+                  {product.imageUrl ? (
+                    <img
+                      src={product.imageUrl}
+                      alt={`${product.name || "Product"} image`}
+                      className="h-14 w-14 rounded-lg border border-gray-200 bg-white object-contain p-1"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div
+                      className="flex h-14 w-14 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-xs text-gray-400"
+                      aria-label={`No image available for ${product.name || "product"}`}
+                    >
+                      No image
+                    </div>
+                  )}
                 </td>
                 <td className="border-b border-gray-300 px-4 py-4">
                 {product.note || "—"}

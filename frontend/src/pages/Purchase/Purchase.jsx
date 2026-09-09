@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api";
-
+import Modal from "../../components/Modal";
 function Purchase() {
   // state variables
   const [searchInput, setSearchInput] = useState("");
@@ -29,6 +29,7 @@ function Purchase() {
         );
         setTotalPages(response.data?.totalPages || 1);
         setTotalItems(response.data?.totalItems || 0);
+        setLoading(false);
       } catch (error) {
         setError(
           error.response?.data?.message ||
@@ -77,6 +78,36 @@ function Purchase() {
 
   return (
     <div className="category-page rounded-xl bg-white p-6 shadow-sm">
+      <Modal
+        open={Boolean(purchaseToDelete)}
+        onClose={() => setPurchaseToDelete(null)}
+        title="Delete purchase?"
+          titleClassName="text-black"
+      >
+        {/* Confirmation content */}
+        <p className="text-sm text-black/80">
+          Are you sure you want to delete{" "}
+          <strong className="text-black">{purchaseToDelete?.invoiceNumber}</strong>?
+        </p>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setPurchaseToDelete(null)}
+            className=" hover:bg-gray-100 rounded-lg border border-gray-300 px-4 py-2 text-black disabled:opacity-50"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="rounded-lg hover:bg-red-800 bg-red-600 px-4 py-2 text-white disabled:opacity-50"
+          >
+            Delete
+          </button>
+        </div>
+      </Modal>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">Purchases</h1>
         <Link className="primary-button" to="/purchases/add">
@@ -147,7 +178,7 @@ function Purchase() {
                   {purchase.user?.name || "—"}
                 </td>
                 <td className="border-b text-red-600 font-semibold border-gray-300 px-4 py-4">
-                $  {Number(purchase.totalCost || 0).toLocaleString()}
+                  $ {Number(purchase.totalCost || 0).toLocaleString()}
                 </td>
                 <td className="border-b  text-red-600 font-semibold border-gray-300 px-4 py-4">
                   $ {Number(purchase.dueAmount || 0).toLocaleString()}
@@ -170,7 +201,6 @@ function Purchase() {
                   >
                     {purchase.purchaseStatus || "—"}
                   </span>
-                
                 </td>
                 <td className="border-b border-gray-300 px-4 py-4">
                   {purchase.purchaseDate
@@ -293,92 +323,6 @@ function Purchase() {
           </div>
         )}
       </div>
-
-      {purchaseToDelete && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-[2px]"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !deletingId)
-              setPurchaseToDelete(null);
-          }}
-        >
-          <div
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5"
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="delete-purchase-title"
-            aria-describedby="delete-purchase-description"
-          >
-            <div className="flex items-start gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5 fill-none stroke-current"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 9v4M12 17h.01" />
-                  <path d="M10.3 3.7 2.5 17.2A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.8L13.7 3.7a2 2 0 0 0-3.4 0Z" />
-                </svg>
-              </div>
-              <div>
-                <h2
-                  id="delete-purchase-title"
-                  className="text-lg font-bold text-gray-900"
-                >
-                  Delete purchase?
-                </h2>
-                <p
-                  id="delete-purchase-description"
-                  className="mt-2 text-sm leading-6 text-gray-500"
-                >
-                  You are about to permanently delete{" "}
-                  <span className="font-semibold text-gray-700">
-                    {purchaseToDelete.invoiceNumber}
-                  </span>
-                  . This action cannot be undone.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                type="button"
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                onClick={() => setPurchaseToDelete(null)}
-                disabled={Boolean(deletingId)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="inline-flex min-w-36 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={handleDelete}
-                disabled={Boolean(deletingId)}
-              >
-                {deletingId ? (
-                  <>
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 24 24"
-                      className="h-4 w-4 animate-spin fill-none stroke-current"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    >
-                      <path d="M21 12a9 9 0 1 1-6.22-8.56" />
-                    </svg>
-                    Deleting…
-                  </>
-                ) : (
-                  "Delete purchase"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

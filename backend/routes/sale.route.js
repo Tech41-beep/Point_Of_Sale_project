@@ -15,21 +15,17 @@ const saleRouter = express.Router();
 
 saleRouter
   .route("/")
-  .post(restrict("super_admin", "admin"), createSale)
-  .get(restrict("super_admin", "admin"), getAllSales);
+  .post(restrict("super_admin", "admin", "cashier"), createSale)
+  .get(restrict("super_admin", "admin", "cashier"), getAllSales);
 
-saleRouter.get("/code/:code", restrict("super_admin", "admin"), findOneByCode);
+saleRouter.get("/stock", restrict("super_admin", "admin", "cashier"), checkStock);
+saleRouter.get("/code/:code", restrict("super_admin", "admin", "cashier"), findOneByCode);
+saleRouter.post("/payment/:id", restrict("super_admin", "admin", "cashier"), addPayment);
 
 saleRouter
   .route("/:id")
-  .get(restrict("super_admin", "admin"), findOne)
+  .get(restrict("super_admin", "admin", "cashier"), findOne)
   .put(restrict("super_admin", "admin"), updateSale)
   .delete(restrict("super_admin", "admin"), deleteSale);
-
-saleRouter
- .get("/stock", restrict("super_admin", "admin"), checkStock);
-
-saleRouter
- .post("/payment/:id", restrict("super_admin", "admin"), addPayment);
 
 module.exports = saleRouter;

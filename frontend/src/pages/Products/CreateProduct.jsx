@@ -5,7 +5,7 @@ import api from "../../api";
 function CreateProduct() {
   const navigate = useNavigate();
   const imageInputRef = useRef(null);
-  const [form, setForm] = useState({ id: "", category: "", name: "", code: "", costPrice: "", salePrice: "", currentStockQuantity: "", imageUrl: "", note: "" });
+  const [form, setForm] = useState({ id: "", barcode: "", category: "", name: "", code: "", costPrice: "", salePrice: "", currentStockQuantity: "", imageUrl: "", note: "" });
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -73,13 +73,14 @@ function CreateProduct() {
 
     if (
   !payload.id ||
+  !payload.barcode ||
   !payload.name ||
   !payload.category ||
   !payload.costPrice ||
   !payload.salePrice
 ) {
   setError(
-    "Product ID, name, category, cost price, and sale price are required.",
+    "Product ID, barcode, name, category, cost price, and sale price are required.",
   );
   return;
 }
@@ -109,6 +110,9 @@ function CreateProduct() {
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="text-sm font-medium text-gray-700">Product ID *
             <input name="id" value={form.id} onChange={handleChange} required placeholder="P001" className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none focus:border-indigo-500" />
+          </label>
+          <label className="text-sm font-medium text-gray-700">Barcode *
+            <input name="barcode" value={form.barcode} onChange={handleChange} required minLength={4} maxLength={32} placeholder="Scan or enter barcode" className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none focus:border-indigo-500" />
           </label>
           <label className="text-sm font-medium text-gray-700">code *
             <input name="code" value={form.code} onChange={handleChange} required placeholder="Enter product code" className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none focus:border-indigo-500" />

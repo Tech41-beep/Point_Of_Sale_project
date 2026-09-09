@@ -2,6 +2,12 @@ const { default: mongoose } = require("mongoose");
 
 const schema = new mongoose.Schema(
   {
+    id: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
     name: {
       type: String,
       required: true,
@@ -23,6 +29,11 @@ const schema = new mongoose.Schema(
         type: String,
         enum: ['super_admin','admin', 'user', 'cashier'],
         required: [true, 'Role is required'],
+    },
+    note: {
+      type: String,
+      trim: true,
+      default: "",
     },
    
   },

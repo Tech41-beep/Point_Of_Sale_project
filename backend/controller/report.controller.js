@@ -1,112 +1,81 @@
 const Sale = require("../model/sale.model");
 const Product = require("../model/product.model");
+const Purchase = require("../model/purchase.model");
+const Customers = require("../model/customers.model");
+const Supplier = require("../model/supplier.model");
 const generateReport = async (req, res) => {
   try {
-    const startDate = new Date(req.query.startDate);
-    const endDate = new Date(req.query.endDate);
+    const { startDate: startDateQuery, endDate: endDateQuery } = req.query;
+    if (!startDateQuery || !endDateQuery) {
+      return res.status(400).json({
+        success: false,
+        message: "startDate and endDate are required",
+      });
+    }
+
+    const startDate = new Date(startDateQuery);
+    const endDate = new Date(endDateQuery);
     if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
       return res.status(400).json({
         success: false,
         message: "Valid startDate and endDate are required",
       });
     }
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(23, 59, 59, 999);
+    if (startDate > endDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Start date must be on or before end date",
+      });
+    }
+    startDate.setUTCHours(0, 0, 0, 0);
+    endDate.setUTCHours(23, 59, 59, 999);
 
-    const report = await Sale.find(
-      {
-        createdAt: {
-          $gte: startDate,
-          $lte: endDate,
-        },
-      },
-      { totalCost: 1 },
-    );
-    const totalSales = report.reduce((acc, sale) => {
-      return acc + sale.totalCost;
-    }, 0);
-    // total due amount
-    const dueSale = await Sale.find(
-      {
-        paymentStatus: "due",
-      },
-      {
-        totalCost: 1,
-      },
-    );
-
-    // total die amount for purchase
-    const duePurchase = await Sale.find(
-      {
-        paymentStatus: "due",
-      },
-      {
-        totalCost: 1,
-      },
-    );
-    const totalDueSale = dueSale.reduce((acc, sale) => {
-      acc + sale.totalCost;
-    }, 0);
-    const totalDuePurchase = duePurchase.reduce((acc, purchase) => {
-      acc + purchase.totalCost;
-    }, 0);
-
-    // monthly sale
-    const monthlySale = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth() + 1,
-      new Date().getDate(),
-    );
-    const monthlyReport = await Sale.find({
+    const dateFilter = {
       createdAt: {
         $gte: startDate,
         $lte: endDate,
       },
-    });
-    //total customer
-    const totalCustomer = await Sale.find(
-      {
-        createdAt: {
-          $gte: startDate,
-          $lte: endDate,
-        },
-      },
-      {
-        totalCost: 1,
-      },
+    };
+
+    const [report, dueSale, duePurchase, totalCustomerCount, totalSupplierCount] =
+      await Promise.all([
+        Sale.find(dateFilter, { totalCost: 1, createdAt: 1 }),
+        Sale.find(
+          { ...dateFilter, dueAmount: { $gt: 0 } },
+          { dueAmount: 1 },
+        ),
+        Purchase.find(
+          { ...dateFilter, dueAmount: { $gt: 0 } },
+          { dueAmount: 1 },
+        ),
+        Customers.countDocuments(dateFilter),
+        Supplier.countDocuments(dateFilter),
+      ]);
+
+    const totalSales = report.reduce(
+      (acc, sale) => acc + Number(sale.totalCost || 0),
+      0,
     );
-    const totalCustomerCount = totalCustomer.length;
-    //total supplier
-    const totalSupplier = await Sale.find(
-      {
-        createdAt: {
-          $gte: startDate,
-          $lte: endDate,
-        },
-      },
-      {
-        totalCost: 1,
-      },
+    const totalDueSale = dueSale.reduce(
+      (acc, sale) => acc + Number(sale.dueAmount || 0),
+      0,
     );
-    const totalSupplierCount = totalSupplier.length;
-    if (report.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No report found for the given date range",
-      });
-    }
+    const totalDuePurchase = duePurchase.reduce(
+      (acc, purchase) => acc + Number(purchase.dueAmount || 0),
+      0,
+    );
 
     res.status(200).json({
       success: true,
       result: report,
       totalSales: {
-        totalSales: totalSales,
+        totalSales,
         dueSale: totalDueSale,
         duePurchase: totalDuePurchase,
-        monthlySale: monthlyReport,
-        monthlyLength: monthlyReport.length,
-        totalCustomerCount: totalCustomerCount,
-        totalSupplierCount: totalSupplierCount,
+        monthlySale: report,
+        monthlyLength: report.length,
+        totalCustomerCount,
+        totalSupplierCount,
       },
     });
   } catch (error) {
@@ -118,41 +87,63 @@ const generateReport = async (req, res) => {
 };
 const saleReport = async (req, res) => {
   try {
-    if(!req.query?.startDate || !req.query?.endDate){
-    return res.status(400).json({
-      success: false,
-      message: "startDate and endDate are required",
-    });
-    }
-    const startDate = new Date(req.query.startDate);
-    const endDate = new Date(req.query.endDate);
+    const { startDate, endDate } = req.query;
 
-    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-        return res.status(400).json({
-            success: false,
-            message: "Valid startDate and endDate are required",
-        });
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        success: false,
+        message: "startDate and endDate are required",
+      });
     }
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(23, 59, 59, 999);
 
-    const report = await Sale.find(
-          {
-        createdAt: {
-          $gte: startDate,
-          $lte: endDate,
-        }, 
-    }).population("customer", "name email phoneNumber")
-    .populate("products.product", "name price");
-    const totalSales = report.reduce((acc,sale)=>{
-        return acc+ sale.totalCost;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (
+      Number.isNaN(start.getTime()) ||
+      Number.isNaN(end.getTime())
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid startDate and endDate are required",
+      });
+    }
+
+    if (start > end) {
+      return res.status(400).json({
+        success: false,
+        message: "Start date must be on or before end date",
+      });
+    }
+
+    // Interpret date boundaries consistently in UTC.
+    start.setUTCHours(0, 0, 0, 0);
+    end.setUTCHours(23, 59, 59, 999);
+
+    const report = await Sale.find({
+      createdAt: {
+        $gte: start,
+        $lte: end,
+      },
     })
-    res.status(200).json({
+      .populate("customer", "name email phoneNumber")
+      .populate("user", "name")
+      .populate("items.product", "name salePrice")
+      .sort({ createdAt: -1 });
+
+    const totalSales = report.reduce(
+      (sum, sale) => sum + Number(sale.totalCost || 0),
+      0,
+    );
+
+    return res.status(200).json({
       success: true,
-      message: "Sale report generated successfully",
+      result: report,
+      totalSales,
+      totalItems: report.length,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -161,15 +152,25 @@ const saleReport = async (req, res) => {
 
 const stockReport = async (req, res) => {
 try{
-    console.log(req.query);
-    if(!req.query.Qty){
+    const { Qty } = req.query;
+    if (Qty === undefined || (typeof Qty === "string" && Qty.trim() === "")) {
        return  res.status(400).json({
             success: false,
             message: "Qty is required",
         })
     }
+    const quantity = Number(Qty);
+    if (
+      (typeof Qty !== "string" && typeof Qty !== "number") ||
+      !Number.isFinite(quantity) || quantity < 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Qty must be a non-negative number",
+      });
+    }
     const doc = await Product.find({
-        currentStockQuantity: { $lte: Number(req.query.Qty) },
+        currentStockQuantity: { $lte: quantity },
     })
   res.status(200).json({
     success: true,

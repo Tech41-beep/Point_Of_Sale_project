@@ -1,5 +1,6 @@
 import { useState } from "react";
 import api from "../../api";
+import {toast} from "react-toastify";
 
 const useSignin = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,6 +21,7 @@ const useSignin = () => {
       localStorage.setItem("authToken", data.result.token);
       localStorage.setItem("currentUser", JSON.stringify(data.result.user));
       localStorage.removeItem("token");
+      toast.success("Signed in successfully!");
       return data.result;
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Unable to sign in.");

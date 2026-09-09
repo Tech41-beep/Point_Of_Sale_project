@@ -7,7 +7,7 @@ const inputClass = "mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 
 export default function EditPurchase() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ supplier: "", invoiceNumber: "", purchaseDate: "", product: "", quantity: "1", price: "", paidAmount: "0", purchaseStatus: "pending" });
+  const [form, setForm] = useState({ supplier: "", invoiceNumber: "", purchaseDate: "", product: "", quantity: "1", price: "", paidAmount: "0", purchaseStatus: "pending", paymentStatus: "" });
   const [suppliers, setSuppliers] = useState([]);
   const [products, setProducts] = useState([]);
   const [error, setError] = useState("");
@@ -20,7 +20,7 @@ export default function EditPurchase() {
         const item = purchase.items?.[0];
         setSuppliers(suppliersResponse.data?.result || []);
         setProducts(productsResponse.data?.result || []);
-        setForm({ supplier: purchase.supplier?._id || purchase.supplier || "", invoiceNumber: purchase.invoiceNumber || "", purchaseDate: purchase.purchaseDate?.slice(0, 10) || "", product: item?.product?._id || item?.product || "", quantity: String(item?.quantity ?? 1), price: String(item?.price ?? ""), paidAmount: String(purchase.paidAmount ?? 0), purchaseStatus: purchase.purchaseStatus || "pending" });
+        setForm({ supplier: purchase.supplier?._id || purchase.supplier || "", invoiceNumber: purchase.invoiceNumber || "", purchaseDate: purchase.purchaseDate?.slice(0, 10) || "", paymentStatus: purchase.paymentStatus || "", product: item?.product?._id || item?.product || "", quantity: String(item?.quantity ?? 1), price: String(item?.price ?? ""), paidAmount: String(purchase.paidAmount ?? 0), purchaseStatus: purchase.purchaseStatus || "pending" });
       })
       .catch((requestError) => setError(requestError.response?.data?.message || "Failed to load purchase."))
       .finally(() => setLoading(false));
@@ -33,7 +33,7 @@ export default function EditPurchase() {
     setLoading(true);
     setError("");
     try {
-      await api.put(`/purchases/${id}`, { supplier: form.supplier, invoiceNumber: form.invoiceNumber.trim(), purchaseDate: form.purchaseDate, paidAmount: Number(form.paidAmount) || 0, purchaseStatus: form.purchaseStatus, items: [{ product: form.product, quantity: Number(form.quantity), price: Number(form.price) }] });
+      await api.put(`/purchases/${id}`, { supplier: form.supplier, invoiceNumber: form.invoiceNumber.trim(), purchaseDate: form.purchaseDate, paymentStatus: form.paymentStatus, paidAmount: Number(form.paidAmount) || 0, purchaseStatus: form.purchaseStatus, items: [{ product: form.product, quantity: Number(form.quantity), price: Number(form.price) }] });
       navigate("/purchases", { replace: true });
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Failed to update purchase.");
@@ -49,7 +49,7 @@ export default function EditPurchase() {
         <label className="text-sm font-medium text-gray-700">Invoice Number *<input name="invoiceNumber" value={form.invoiceNumber} onChange={change} required className={inputClass} /></label>
         <label className="text-sm font-medium text-gray-700">Date *<input name="purchaseDate" type="date" value={form.purchaseDate} onChange={change} required className={inputClass} /></label>
         <label className="text-sm font-medium text-gray-700">Status<select name="purchaseStatus" value={form.purchaseStatus} onChange={change} className={inputClass}><option value="pending">Pending</option><option value="received">Received</option><option value="cancelled">Cancelled</option></select></label>
-        <label className="text-sm font-medium text-gray-700 sm:col-span-2">Product *<select name="product" value={form.product} onChange={change} required className={inputClass}><option value="">Select product</option>{products.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}</select></label>
+        <label className="text-sm font-medium text-gray-700 sm:col-span-2">Payment Status *<select name="paymentStatus" value={form.paymentStatus} onChange={change} required className={inputClass}><option value="">Select payment status</option><option value="paid">Paid</option><option value="unpaid">Unpaid</option></select></label>
         <label className="text-sm font-medium text-gray-700">Quantity *<input name="quantity" type="number" min="1" value={form.quantity} onChange={change} required className={inputClass} /></label>
         <label className="text-sm font-medium text-gray-700">Unit Cost *<input name="price" type="number" min="0" step="0.01" value={form.price} onChange={change} required className={inputClass} /></label>
         <label className="text-sm font-medium text-gray-700">Paid Amount<input name="paidAmount" type="number" min="0" step="0.01" value={form.paidAmount} onChange={change} className={inputClass} /></label>

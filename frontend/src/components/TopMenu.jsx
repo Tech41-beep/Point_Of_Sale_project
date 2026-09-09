@@ -16,6 +16,13 @@ export default function TopMenu({ onMenuClick, sidebarOpen, lightMode, onLightTo
     });
   }, [getCurrentUser]);
 
+  const today = new Intl.DateTimeFormat("en-US", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+}).format(new Date());
+
   return (
     <header className="top-menu">
       <button className="icon-button menu-button" onClick={onMenuClick} aria-label={sidebarOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={sidebarOpen}>
@@ -24,7 +31,7 @@ export default function TopMenu({ onMenuClick, sidebarOpen, lightMode, onLightTo
 
       <div className="top-menu__title">
         <span>Overview</span>
-        <small>Wednesday, 12 August 2026</small>
+        <small>{today}</small>
       </div>
 
       <div className="top-menu__actions">

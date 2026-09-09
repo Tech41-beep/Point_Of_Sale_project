@@ -16,6 +16,14 @@ const schema = new mongoose.Schema(
       ref: "Category",
       required: true,
     },
+    barcode: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      minlength: 4,
+      maxlength: 32,
+    },
     code: {
       type: String,
     },

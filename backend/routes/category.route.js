@@ -12,8 +12,8 @@ const categoryRouter = express.Router();
 
 categoryRouter
   .route("/")
-  .post(create)
-  .get(restrict("super_admin", "admin"), findAll);
+  .post(restrict("super_admin", "admin"), create)
+  .get(restrict("super_admin", "admin", "cashier"), findAll);
 
 categoryRouter
   .route("/:id")

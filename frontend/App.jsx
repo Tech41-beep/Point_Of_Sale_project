@@ -9,7 +9,7 @@ import AdminLayout from "./src/layouts/AdminLayout";
 import Dashboard from "./src/pages/dashboard";
 import Customers from "./src/pages/customers/customer";
 import CreateCustomer from "./src/pages/customers/CreateCustomer";
-import Signin from "./src/pages/auth/Signin";
+import Signin from "./src/pages/auth/SignIn";
 import EditCustomer from "./src/pages/customers/EditCustomer";
 import Suppliers from "./src/pages/suppliers/Supplier";
 import CreateSupplier from "./src/pages/suppliers/CreateSupplier";
@@ -27,6 +27,15 @@ import CreatePurchase from "./src/pages/Purchase/CreatePurchase";
 import EditPurchase from "./src/pages/Purchase/EditPurchase";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Sale from "./src/pages/Sale/ListSale";
+import Invoice from "./src/pages/Sale/Invoice";
+import POS from "./src/pages/Sale/POS";
+import User from "./src/pages/User/user.jsx";
+import CreateUser from "./src/pages/User/CreateUser.jsx";
+import EditUser from "./src/pages/User/EditUser.jsx";
+import SaleReport from "./src/pages/Reports/SaleReport.jsx";
+import StockReport from "./src/pages/Reports/StockReport.jsx";
+import Setting from "./src/components/setting.jsx";
 const Placeholder = () => (
   <div className="panel placeholder">
     <h2>Coming soon</h2>
@@ -60,46 +69,64 @@ const ProtectedLayout = () => {
 
 export default function App() {
   return (
-   <BrowserRouter>
-  <Routes>
-    <Route path="/signin" element={<AuthRedirect><Signin /></AuthRedirect>} />
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/signin"
+          element={
+            <AuthRedirect>
+              <Signin />
+            </AuthRedirect>
+          }
+        />
 
-    <Route element={<ProtectedLayout />}>
-      <Route index element={<Dashboard />} />
+        <Route element={<ProtectedLayout />}>
+          <Route index element={<Dashboard />} />
 
-      <Route element={<Protect allowedRoles={["super_admin", "admin"]} />}>
-        <Route path="customers" element={<Customers />} />
-        <Route path="customers/add" element={<CreateCustomer />} />
-        <Route path="customers/edit/:id" element={<EditCustomer />} />
+          <Route element={<Protect allowedRoles={["super_admin", "admin"]} />}>
+            <Route path="customers" element={<Customers />} />
+            <Route path="customers/add" element={<CreateCustomer />} />
+            <Route path="customers/edit/:id" element={<EditCustomer />} />
 
-        <Route path="suppliers" element={<Suppliers />} />
-        <Route path="suppliers/add" element={<CreateSupplier />} />
-        <Route path="suppliers/edit/:id" element={<EditSupplier />} />
+            <Route path="suppliers" element={<Suppliers />} />
+            <Route path="suppliers/add" element={<CreateSupplier />} />
+            <Route path="suppliers/edit/:id" element={<EditSupplier />} />
 
-        <Route path="categories" element={<Category />} />
-        <Route path="categories/add" element={<CreateCategory />} />
-        <Route path="categories/edit/:id" element={<EditCategory />} />
+            <Route path="categories" element={<Category />} />
+            <Route path="categories/add" element={<CreateCategory />} />
+            <Route path="categories/edit/:id" element={<EditCategory />} />
 
-        <Route path="products" element={<Products />} />
-        <Route path="products/add" element={<CreateProduct />} />
-        <Route path="products/edit/:id" element={<EditProduct />} />
+            <Route path="products" element={<Products />} />
+            <Route path="products/add" element={<CreateProduct />} />
+            <Route path="products/edit/:id" element={<EditProduct />} />
 
-        <Route path="purchases" element={<Purchase />} />
-        <Route path="purchases/add" element={<CreatePurchase />} />
-        <Route path="purchases/edit/:id" element={<EditPurchase />} />
-      </Route>
+            <Route path="purchases" element={<Purchase />} />
+            <Route path="purchases/add" element={<CreatePurchase />} />
+            <Route path="purchases/edit/:id" element={<EditPurchase />} />
 
-      <Route element={<Protect allowedRoles={["super_admin"]} />}>
-        <Route path="users" element={<Placeholder />} />
-      </Route>
+            <Route path="sales" element={<Sale />} />
+            <Route path="reports/sales" element={<SaleReport />} />
+            <Route path="reports/stock" element={<StockReport />} />
+          </Route>
 
-      <Route path="*" element={<Placeholder />} />
-      
-    </Route>
-  </Routes>
-        <ToastContainer position="top-center" autoClose={6000} />
-</BrowserRouter>
+          <Route element={<Protect allowedRoles={["super_admin", "admin", "cashier"]} />}>
+            <Route path="sales/pos" element={<POS />} />
+            <Route path="sales/history" element={<Sale />} />
+            <Route path="invoice" element={<Invoice />} />
+          </Route>
 
+          <Route element={<Protect allowedRoles={["super_admin"]} />}>
+            <Route path="users" element={<User />} />
+            <Route path="users/add" element={<CreateUser />} />
+            <Route path="users/edit/:id" element={<EditUser />} />
+          </Route>
 
+          <Route path="settings" element={<Setting />} />
+
+          <Route path="*" element={<Placeholder />} />
+        </Route>
+      </Routes>
+      <ToastContainer position="top-center" autoClose={4500} />
+    </BrowserRouter>
   );
 }

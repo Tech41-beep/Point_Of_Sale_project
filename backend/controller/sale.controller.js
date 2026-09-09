@@ -109,18 +109,24 @@ const getAllSales = async (req, res) => {
      // sort option 
      const sortOption = req.query.sort ? req.query.sort.split(',').join(' ') : '-createdAt';
  
-     const doc= await Sale.find(querySearch)
-     .populate('supplier')
-     .populate('items.product')
-     .populate('user')
-     .skip(skip)
-     .limit(limit)
-     .sort(sortOption)
-     .exec();
+     const [doc, totalItems] = await Promise.all([
+       Sale.find(querySearch)
+         .populate('customer')
+         .populate('items.product')
+         .populate('user')
+         .skip(skip)
+         .limit(limit)
+         .sort(sortOption)
+         .exec(),
+       Sale.countDocuments(querySearch),
+     ]);
  
      res.status(200).json({
          success: true,
-         result: doc ,
+         result: doc,
+         totalItems,
+         totalPages: Math.max(1, Math.ceil(totalItems / limit)),
+         currentPage: pagevalue,
      })
  
  
@@ -176,9 +182,19 @@ const updateSale = async (req, res) => {
 
 const deleteSale = async (req, res) => {
   try {
+    const sale = await Sale.findByIdAndDelete(req.params.id);
+
+    if (!sale) {
+      return res.status(404).json({
+        success: false,
+        message: "Sale not found",
+      });
+    }
+
     res.status(200).json({
       success: true,
-      result: [],
+      result: sale,
+      message: "Sale deleted successfully",
     });
   } catch (error) {
     next(error);

@@ -1,5 +1,27 @@
 const Product = require('../model/product.model');
 
+const sendProductWriteError = (res, error) => {
+  if (error.code === 11000) {
+    const field = Object.keys(error.keyPattern || error.keyValue || {})[0] || "value";
+    return res.status(409).json({
+      success: false,
+      message: `A product with this ${field} already exists`,
+    });
+  }
+
+  if (error.name === "ValidationError" || error.name === "CastError") {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+
+  return res.status(500).json({
+    success: false,
+    message: "Unable to save product",
+  });
+};
+
 const getAllProducts = async (req, res) => {
  try {
     const page = Number(req.query.page) || 1;
@@ -48,6 +70,45 @@ const getAllProducts = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
+      error: error.message,
+    });
+  }
+};
+const getProductByBarcode = async (req, res) => {
+  try {
+    const { barcode } = req.params;
+    const normalizedBarcode = barcode.trim();
+
+    if (normalizedBarcode.length < 4 || normalizedBarcode.length > 32) {
+      return res.status(400).json({
+        success: false,
+        message: "Barcode must be between 4 and 32 characters",
+      });
+    }
+
+    const product = await Product.findOne({
+      barcode: normalizedBarcode,
+    }).populate('category');
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Product found",
+      result: product,
+    });
+
+  } catch (error) {
+    console.error("Barcode lookup error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to find product",
       error: error.message,
     });
   }
@@ -105,10 +166,7 @@ const createProduct = async (req, res) => {
             result: savedProduct,
         })
     }catch(error){
-        res.status(500).json({
-            success: false,
-            message: error.message,
-        })  
+        return sendProductWriteError(res, error);
     }
 }
 
@@ -117,6 +175,7 @@ const updateProduct = async (req, res) => {
         const { id } = req.params;
         const product = await Product.findByIdAndUpdate(id, req.body, {
             new: true,
+            runValidators: true,
         });
         if(!product){
             return res.status(404).json({
@@ -129,10 +188,7 @@ const updateProduct = async (req, res) => {
             result: product,
         })
     }catch(error){
-        res.status(500).json({
-            success: false,
-            message: error.message,
-        })
+        return sendProductWriteError(res, error);
     }
 }
 const deleteProduct = async (req, res) => {
@@ -164,5 +220,6 @@ module.exports = {
     updateProduct,
     deleteProduct,
     findOne,
-    findOneByCode
+    findOneByCode,
+    getProductByBarcode,
 }

@@ -9,7 +9,7 @@ const inputClass = "mt-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 ou
 function EditProduct() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [form, setForm] = useState({ id: "", name: "", code: "", category: "", costPrice: "", salePrice: "", currentStockQuantity: "", imageUrl: "", note: "" });
+  const [form, setForm] = useState({ id: "", barcode: "", name: "", code: "", category: "", costPrice: "", salePrice: "", currentStockQuantity: "", imageUrl: "", note: "" });
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState("");
   const { data, loading, error: loadError } = useFindCustomerById("products", id);
@@ -24,7 +24,7 @@ function EditProduct() {
   useEffect(() => {
     if (!data) return;
     setForm({
-      id: data.id || "", name: data.name || "", code: data.code || "",
+      id: data.id || "", barcode: data.barcode || "", name: data.name || "", code: data.code || "",
       category: data.category?._id || data.category || "",
       costPrice: String(data.costPrice ?? ""), salePrice: String(data.salePrice ?? ""),
       currentStockQuantity: String(data.currentStockQuantity ?? ""),
@@ -40,8 +40,8 @@ function EditProduct() {
     event.preventDefault();
     if (isLoading) return;
     const payload = Object.fromEntries(Object.entries(form).map(([key, value]) => [key, value.trim()]));
-    if (!payload.id || !payload.name || !payload.category || payload.costPrice === "" || payload.salePrice === "") {
-      setError("Product ID, name, category, cost price, and sale price are required.");
+    if (!payload.id || !payload.barcode || !payload.name || !payload.category || payload.costPrice === "" || payload.salePrice === "") {
+      setError("Product ID, barcode, name, category, cost price, and sale price are required.");
       return;
     }
     setError("");
@@ -62,6 +62,7 @@ function EditProduct() {
         {loading && <p className="mb-4 text-sm text-gray-500">Loading product…</p>}
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="text-sm font-medium text-gray-700">Product ID *<input name="id" value={form.id} onChange={handleChange} required className={inputClass} /></label>
+          <label className="text-sm font-medium text-gray-700">Barcode *<input name="barcode" value={form.barcode} onChange={handleChange} required minLength={4} maxLength={32} className={inputClass} /></label>
           <label className="text-sm font-medium text-gray-700">Code<input name="code" value={form.code} onChange={handleChange} className={inputClass} /></label>
           <label className="text-sm font-medium text-gray-700">Product Name *<input name="name" value={form.name} onChange={handleChange} required className={inputClass} /></label>
           <label className="text-sm font-medium text-gray-700">Category *
