@@ -9,7 +9,7 @@ import AdminLayout from "./src/layouts/AdminLayout";
 import Dashboard from "./src/pages/dashboard";
 import Customers from "./src/pages/customers/customer";
 import CreateCustomer from "./src/pages/customers/CreateCustomer";
-import Signin from "./src/pages/auth/SignIn";
+import SignIn from "./src/pages/auth/Signin";
 import EditCustomer from "./src/pages/customers/EditCustomer";
 import Suppliers from "./src/pages/suppliers/Supplier";
 import CreateSupplier from "./src/pages/suppliers/CreateSupplier";
