@@ -154,7 +154,8 @@ const login = async (req, res) => {
                 message: 'Email and password are required',
             });
         }
-        const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await User.findOne({ email: normalizedEmail }).select('+password');
         if (!user) {
             return res.status(404).json({
                 success: false,

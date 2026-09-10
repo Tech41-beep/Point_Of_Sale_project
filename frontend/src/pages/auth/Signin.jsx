@@ -56,9 +56,10 @@ export default function SignIn() {
       );
       
     } catch (requestError) {
-      setError(requestError.message === "Failed to fetch"
+      const message = requestError.response?.data?.message;
+      setError(message || (requestError.message === "Failed to fetch"
         ? "Cannot connect to the backend. Start the server on port 8000."
-        : requestError.message || "Something went wrong. Please try again.");
+        : requestError.message || "Something went wrong. Please try again."));
     } finally {
       setLoading(false);
     }
