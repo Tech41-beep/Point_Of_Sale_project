@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import api from "../../api";
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -13,12 +14,9 @@ export default function SignUp() {
     if (form.password.length < 8) return setError("Use at least 8 characters for your password.");
     setSaving(true); setError("");
     try {
-      const response = await fetch("/api/auth/signup", {
-        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
-        body: JSON.stringify(form),
-      });
-      const data = await response.json();
-      if (!response.ok || !data.success) throw new Error(data.message || "Could not create your account.");
+      const response = await api.post("/auth/signup", form);
+      const data = response.data;
+      if (!data.success) throw new Error(data.message || "Could not create your account.");
       localStorage.setItem("authToken", data.result.token);
       localStorage.setItem("currentUser", JSON.stringify(data.result.user));
       toast.success("Welcome to PointFlow!");

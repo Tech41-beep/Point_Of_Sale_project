@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import api from "../../api";
 function LockIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -31,15 +32,13 @@ export default function SignIn() {
 
     setLoading(true);
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email: form.email.trim(), password: form.password }),
+      const response = await api.post("/auth/login", {
+        email: form.email.trim(),
+        password: form.password,
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || data.error || `Sign in failed (${response.status}).`);
+      const data = response.data;
+      if (!data.success) {
+        throw new Error(data.message || data.error || "Sign in failed.");
       }
       if (!data.result?.token) {
         throw new Error("The server did not return an authentication token.");
