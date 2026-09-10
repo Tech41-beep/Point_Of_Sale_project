@@ -29,9 +29,13 @@ const storeRouter = require("./routes/store.route");
 
 const app = express();
 
+const configuredOrigins = [process.env.CLIENT_DOMAIN, process.env.LOCAL_DOMAIN]
+  .flatMap((value) => (value || "").split(","))
+  .map((value) => value.trim())
+  .filter(Boolean);
+
 const allowOrigins = [
-  process.env.CLIENT_DOMAIN,
-  process.env.LOCAL_DOMAIN,
+  ...configuredOrigins,
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "http://localhost:5174",
