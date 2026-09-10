@@ -9,12 +9,15 @@ const cookieOptions = {
 };
 const signup = async (req, res) => {
     try{
-        const { name, email, password, role } = req.body;
+        const { name, email, password } = req.body;
+        // Public registration always creates a shopper. Staff accounts are
+        // created through the protected user-management endpoint.
+        const role = "user";
 
-        if(!name || !email || !password || !role){
+        if(!name || !email || !password){
             return res.status(400).json({
                 success: false,
-                message: 'Name, email, password and role are required',
+                message: 'Name, email and password are required',
             })
         }
 
@@ -53,7 +56,13 @@ const signup = async (req, res) => {
             })
         }
 
-        const normalizedEmail = email.toLowerCase();
+        const normalizedEmail = email.toLowerCase().trim();
+        if (!/^[^\s@]+@gmail\.com$/i.test(normalizedEmail)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please register with a valid Gmail address',
+            });
+        }
         const existingUser = await User.findOne({ email: normalizedEmail });
         if (existingUser) {
             return res.status(400).json({

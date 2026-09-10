@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "db:seeder": "node config/seeder.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -25,6 +26,7 @@
     "mongoose": "^9.7.3",
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
+    "pos-project-workspace": "file:..",
     "qs": "^6.15.3",
     "ratelimit": "^0.0.4"
   },

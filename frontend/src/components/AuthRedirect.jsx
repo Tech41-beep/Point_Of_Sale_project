@@ -17,7 +17,7 @@ function AuthRedirect({ children }) {
   }
 
   if (token && user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={user.role === "user" ? "/shop" : "/"} replace />;
   }
 
   return children;

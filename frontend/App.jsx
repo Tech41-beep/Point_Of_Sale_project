@@ -36,6 +36,11 @@ import EditUser from "./src/pages/User/EditUser.jsx";
 import SaleReport from "./src/pages/Reports/SaleReport.jsx";
 import StockReport from "./src/pages/Reports/StockReport.jsx";
 import Setting from "./src/components/setting.jsx";
+import Storefront from "./src/pages/shop/Storefront";
+import CustomerOrders from "./src/pages/shop/CustomerOrders";
+import MyOrders from "./src/pages/shop/MyOrders";
+import SignUp from "./src/pages/auth/SignUp";
+import UserLayout from "./src/layouts/UserLayout";
 const Placeholder = () => (
   <div className="panel placeholder">
     <h2>Coming soon</h2>
@@ -60,6 +65,10 @@ const ProtectedLayout = () => {
     sessionStorage.removeItem("currentUser");
   }
 
+  if (token && user?.role === "user") {
+    return <Navigate to="/shop" replace />;
+  }
+
   return token && user ? (
     <AdminLayout />
   ) : (
@@ -79,6 +88,17 @@ export default function App() {
             </AuthRedirect>
           }
         />
+        <Route path="/signup" element={<AuthRedirect><SignUp /></AuthRedirect>} />
+
+        <Route element={<Protect allowedRoles={["user"]} />}>
+          <Route element={<UserLayout />}>
+            <Route path="/shop" element={<Storefront />} />
+            <Route path="/shop/orders" element={<MyOrders />} />
+            <Route path="/settings" element={<Setting />} />
+            <Route path="/invoice" element={<Invoice />} />
+            <Route path="/orders" element={<CustomerOrders />} />
+          </Route>
+        </Route>
 
         <Route element={<ProtectedLayout />}>
           <Route index element={<Dashboard />} />
@@ -107,6 +127,10 @@ export default function App() {
             <Route path="sales" element={<Sale />} />
             <Route path="reports/sales" element={<SaleReport />} />
             <Route path="reports/stock" element={<StockReport />} />
+          </Route>
+
+          <Route element={<Protect allowedRoles={["super_admin", "admin", "cashier"]} />}>
+            <Route path="orders" element={<CustomerOrders />} />
           </Route>
 
           <Route element={<Protect allowedRoles={["super_admin", "admin", "cashier"]} />}>

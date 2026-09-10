@@ -25,6 +25,7 @@ const saleRouter = require("./routes/sale.route");
 const reportRouter = require("./routes/report.route");
 const chatRouter = require("./routes/chat.route");
 const settingsRouter = require("./routes/setting.route");
+const storeRouter = require("./routes/store.route");
 
 const app = express();
 
@@ -104,6 +105,7 @@ app.use(
 app.use("/api/auth/login", loginLimiter);
 app.use("/api/auth", authRouter);
 app.use("/api/chat", chatLimiter, chatRouter);
+app.use("/api/store", storeRouter);
 
 app.use("/api/users", authGuard, userRouter);
 app.use("/api/customers", authGuard, customerRouter);

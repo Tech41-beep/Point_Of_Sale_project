@@ -10,7 +10,7 @@ export default function Chatbot({ open, setOpen }) {
     {
       id: crypto.randomUUID(),
       role: "assistant",
-      text: "Hello there! How can I help you with the POS system?",
+      text: "Hello! Ask me about products, stock, prices, or the store.",
       isWelcomeMessage: true,
     },
   ]);
@@ -29,7 +29,7 @@ export default function Chatbot({ open, setOpen }) {
             message.isWelcomeMessage
               ? {
                   ...message,
-                  text: `Hello ${currentUser.name}! How can I help you with the POS system?`,
+                  text: `Hello ${currentUser.name}! How can I help with products, stock, prices, or the store?`,
                 }
               : message,
           ),
@@ -106,13 +106,13 @@ export default function Chatbot({ open, setOpen }) {
       {open && (
         <section
           className="fixed bottom-24 right-5 z-50 flex h-[520px] w-[calc(100%-2.5rem)] max-w-sm flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10"
-          aria-label="POS chatbot"
+          aria-label="Store chatbot"
         >
           <header className="flex items-center justify-between bg-indigo-600 px-4 py-3 text-white">
             <div>
-              <h2 className="font-bold">POS Assistant</h2>
+              <h2 className="font-bold">Store Assistant</h2>
               <p className="text-xs text-indigo-100">
-                Ask questions about the POS system
+                Ask about products and store information
               </p>
             </div>
 

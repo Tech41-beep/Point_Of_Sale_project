@@ -50,7 +50,9 @@ export default function SignIn() {
 
       toast.success("Login successful!");
       navigate(
-        data.result.user?.role === "cashier" ? "/sales/pos" : "/",
+        data.result.user?.role === "user"
+          ? "/shop"
+          : data.result.user?.role === "cashier" ? "/sales/pos" : "/",
         { replace: true },
       );
       
@@ -92,7 +94,7 @@ export default function SignIn() {
             {error && <p className="auth-error" role="alert">{error}</p>}
             <button className="auth-submit" type="submit" disabled={loading}>{loading ? "Signing in…" : "Sign in"}<span aria-hidden="true">→</span></button>
           </form>
-          <p className="auth-footer">Need help? <a href="mailto:support@pointflow.com">Contact support</a></p>
+          <p className="auth-footer">New here? <Link to="/signup">Create a shopper account</Link></p>
         </div>
       </section>
     </main>

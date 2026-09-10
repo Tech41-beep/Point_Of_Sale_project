@@ -15,6 +15,18 @@ const cashierItems = [
   ["/", "grid", "Dashboard"],
   ["/sales/pos", "box", "POS"],
   ["/sales/history", "chart", "Sales History"],
+    ["/orders", "receipt", "Customer Orders"],
+
+  
+];
+const userItems = [
+
+  ["/shop", "box", "Shop"],
+  ["/shop/orders", "receipt", "View Orders"],
+  ["/settings", "layers", "Profile"],
+ 
+ 
+
 ];
 const navItems = [
     ["/", "grid", "Dashboard"],
@@ -76,6 +88,12 @@ const paths = {
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
     </>
   ),
+  receipt: (
+    <>
+      <path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" />
+      <path d="M9 8h6M9 12h6" />
+    </>
+  ),
 };
 const Icon = ({ name }) => (
   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -103,7 +121,12 @@ export default function Sidebar({ open, onClose, onOpenChatbot }) {
   }
 
   const isCashier = currentUser?.role === "cashier";
-  const visibleItems = isCashier ? cashierItems : navItems;
+  const isShopper = currentUser?.role === "user";
+  const visibleItems = isShopper
+    ? userItems
+    : isCashier
+      ? cashierItems
+      : [...navItems, ["/orders", "receipt", "Customer Orders"]];
 
   const closeOnMobile = () => {
     if (window.matchMedia("(max-width: 760px)").matches) onClose();
@@ -156,7 +179,7 @@ export default function Sidebar({ open, onClose, onOpenChatbot }) {
     </NavLink>
   ))}
 
-  {!isCashier && (
+  {!isCashier && !isShopper && (
     <>
   <button
     type="button"
@@ -220,13 +243,13 @@ export default function Sidebar({ open, onClose, onOpenChatbot }) {
 </nav>
 
         <div className="sidebar__bottom">
-          <NavLink to="/settings">
+          {!isShopper && <NavLink to="/settings">
             <Icon name="layers" />
             <span>{isCashier ? "Profile" : "Settings"}</span>
-          </NavLink>
+          </NavLink>}
           <div className="help-card">
             <strong>Need help?</strong>
-            <span>Check our documentation</span>
+            <span>{isShopper ? "Ask about products or orders" : "Check our documentation"}</span>
 
            <button
              type="button"
