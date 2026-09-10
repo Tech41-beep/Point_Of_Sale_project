@@ -75,7 +75,7 @@ export default function App() {
           path="/signin"
           element={
             <AuthRedirect>
-              <Signin />
+              <SignIn />
             </AuthRedirect>
           }
         />
