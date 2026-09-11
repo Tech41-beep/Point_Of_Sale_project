@@ -7,6 +7,59 @@
 @media(max-width:480px){.stats-grid{grid-template-columns:1fr}.top-menu__actions{gap:8px}.profile{display:none}.welcome{align-items:flex-start}.welcome p{max-width:200px}.primary-button{padding:10px 12px}.page-content{padding-inline:14px}}
 
 /* Sidebar visibility toggle */
+.sidebar {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+:root[data-theme="dark"] table {
+  background: #212228;
+  color: #e8e9ef;
+}
+
+:root[data-theme="dark"] table thead {
+  background: #292a31;
+  color: #c3c5ce;
+}
+
+:root[data-theme="dark"] table tbody {
+  color: #e8e9ef;
+}
+
+:root[data-theme="dark"] table th,
+:root[data-theme="dark"] table td {
+  border-color: #3b3d46 !important;
+}
+
+:root[data-theme="dark"] .category-page,
+:root[data-theme="dark"] .customer-page,
+:root[data-theme="dark"] .product-page,
+:root[data-theme="dark"] .supplier-page,
+:root[data-theme="dark"] .page-content > .rounded-xl.bg-white {
+  background: #212228 !important;
+  color: #e8e9ef;
+}
+
+:root[data-theme="dark"] .category-page h1,
+:root[data-theme="dark"] .customer-page h1,
+:root[data-theme="dark"] .product-page h1,
+:root[data-theme="dark"] .supplier-page h1,
+:root[data-theme="dark"] .page-content > .rounded-xl.bg-white h1 {
+  color: #e8e9ef !important;
+}
+
+:root[data-theme="dark"] .category-page input,
+:root[data-theme="dark"] .customer-page input,
+:root[data-theme="dark"] .product-page input,
+:root[data-theme="dark"] .supplier-page input,
+:root[data-theme="dark"] .page-content > .rounded-xl.bg-white input,
+:root[data-theme="dark"] .page-content > .rounded-xl.bg-white select {
+  border-color: #3b3d46;
+  background: #292a31;
+  color: #e8e9ef;
+}
+
 .sidebar{transition:transform .25s ease}
 .sidebar.is-hidden{transform:translateX(-100%)}
 .app-main{transition:width .25s ease,margin-left .25s ease}

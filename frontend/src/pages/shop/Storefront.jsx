@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import { FaShoppingCart, FaBox, FaReceipt } from "react-icons/fa";  
+import { useCurrentUser } from "../../auth/hooks/use.current";
 import api from "../../api";
-
+import Topmenu from "../../components/TopMenu"
 const money = (value) => `$${Number(value || 0).toFixed(2)}`;
 
 export default function Storefront() {
@@ -14,6 +16,19 @@ export default function Storefront() {
   const [tab, setTab] = useState("shop");
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
+  const{ 
+    user,
+    getCurrentUser,
+    isLoading: profileLoading,
+    error: profileError,
+  } = useCurrentUser();
+
+  useEffect(() => { 
+    getCurrentUser().catch(() => {
+      // The storefront can still render if the profile request fails.
+
+    })
+  }, [getCurrentUser] );
   const load = async () => {
     setLoading(true);
     try {
@@ -96,6 +111,11 @@ export default function Storefront() {
     <>
     <main className="min-h-screen bg-slate-50 text-slate-900">
       <header className="sticky top-0 z-20 flex flex-wrap items-center gap-4 border-b bg-white px-5 py-4 shadow-sm">
+            <h1 className="mb-4 text-start text-xl">
+        <strong>
+          Welcome, {profileLoading ? "..." : user?.name || "User"}
+        </strong>
+      </h1>
         <Link to="/shop" className="text-xl font-bold text-indigo-600">
           PointFlow <span className="text-slate-800">Shop</span>
         </Link>

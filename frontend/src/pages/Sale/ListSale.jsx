@@ -3,7 +3,6 @@ import api from "../../api";
 import { FiEdit2, FiEye } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import SalePaymentModal from "./SalePaymentModal";
-
 function Sale() {
   // state variables
   const navigate = useNavigate();
@@ -177,7 +176,11 @@ function Sale() {
 
                     <button
                       type="button"
-                      onClick={() => navigate("/invoice", { state: { sale } })}
+                      onClick={() =>
+                        navigate(`/invoice?saleId=${encodeURIComponent(sale._id)}`, {
+                          state: { sale },
+                        })
+                      }
                       className="inline-flex h-9 w-9 items-center justify-center rounded-lg
                  text-emerald-600 transition hover:bg-emerald-50
                  focus:outline-none focus:ring-2 focus:ring-emerald-500"

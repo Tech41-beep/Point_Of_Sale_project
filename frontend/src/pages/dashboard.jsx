@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import useGeneralReport from "../auth/hooks/useGeneralReport";
 import Rechart from "../components/Rechart";
 import CustomizeCustomElement from "../components/CustomElement";
-
+import { useCurrentUser } from "../auth/hooks/use.current";
 const formatMoney = (value) =>
   new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -19,11 +19,22 @@ const formatDate = (date) => {
 
 export default function Dashboard() {
   const {
+    user,
+    getCurrentUser,
+    error: userError,
+  } = useCurrentUser();
+  const {
     data,
     fetchReport,
     isLoading,
     error,
   } = useGeneralReport();
+
+  useEffect(() => {
+    getCurrentUser().catch(() => {
+      // The dashboard can still render if the profile request fails.
+    });
+  }, [getCurrentUser]);
 
   useEffect(() => {
     const today = new Date();
@@ -86,11 +97,17 @@ export default function Dashboard() {
 
   return (
     <>
-    <h1 className="text-start mb-4 text-xl"><strong> Dashboard </strong></h1>
+    <h1 className="text-start mb-4 text-xl"><strong> Welcome, {user?.name || "User"} </strong></h1>
 
       {error && (
         <p role="alert" className="text-red-600">
           {error}
+        </p>
+      )}
+
+      {userError && !error && (
+        <p role="alert" className="text-red-600">
+          {userError}
         </p>
       )}
 

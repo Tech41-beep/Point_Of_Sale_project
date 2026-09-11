@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import "../../../index.css";
 import { useFindCustomerById } from "../../auth/hooks/use.findById";
 const formatMoney = (value) =>
@@ -10,17 +10,23 @@ const formatMoney = (value) =>
 function Invoice() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const sale = location.state?.sale;
-  const { data } = useFindCustomerById("sales", sale?._id);
+  const saleId = sale?._id || searchParams.get("saleId");
+  const { data, loading, error } = useFindCustomerById("sales", saleId);
   const invoice = data || sale;
-  if (!sale) {
+  if (!invoice && loading) {
+    return <p className="mx-auto max-w-md p-6 text-center">Loading invoice...</p>;
+  }
+
+  if (!invoice) {
     return (
       <div className="mx-auto max-w-md rounded-xl border border-amber-200 bg-amber-50 p-6 text-center">
         <h1 className="text-lg font-bold text-amber-900">
           Invoice not selected
         </h1>
         <p className="mt-2 text-sm text-amber-700">
-          Open an invoice from the sales list using the eye icon.
+          {error || "Open an invoice from the sales list using the eye icon."}
         </p>
         <button
           type="button"

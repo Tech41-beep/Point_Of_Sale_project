@@ -198,7 +198,7 @@ function POS() {
 
       toast.success("Sale completed successfully.");
 
-      navigate("/invoice", {
+      navigate(`/invoice?saleId=${encodeURIComponent(sale._id)}`, {
         state: { sale },
       });
 
