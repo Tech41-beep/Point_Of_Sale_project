@@ -142,7 +142,10 @@ const getAllSales = async (req, res) => {
 const findOne = async (req, res) => {
     try{
          const { id } = req.params;
-         const sale = await Sale.findById(id).populate('category');
+         const sale = await Sale.findById(id)
+           .populate('customer')
+           .populate('items.product')
+           .populate('user');
          if(!sale){
              return res.status(404).json({
                  success: false,
@@ -245,7 +248,7 @@ const checkStock = async (req,res) => {
 const addPayment = async (req,res)=>{
     try{
         const {id}= req.params;
-        const {paidAmount} = req.body?.paidAmount;
+    const paidAmount = Number(req.body?.paidAmount);
 
         if(!paidAmount || paidAmount <= 0) {
           return res.status(400).json({
@@ -263,7 +266,7 @@ const addPayment = async (req,res)=>{
         }
         // 2. calculte new paidAmount and dueAmount
         const totalCost = sale.totalCost;
-        const newPaidAmound = sale.paidAmount + paidAmount;
+        const newPaidAmound = Number(sale.paidAmount || 0) + paidAmount;
         // const newDueAmount = totalCost - newPaidAmound;
 
         // 3.calculate new due Amount
